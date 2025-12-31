@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Draw Pro - Random</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&family=Playfair+Display:ital,wght@1,700&family=Anton&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        /* --- CẤU TRÚC & NỀN --- */
+        :root {
+            --gold-text: linear-gradient(45deg, #FFD700, #FDB931, #FFD700);
+            --gold-border: #FFD700;
+            --btn-red: #d32f2f;
+            --btn-red-dark: #b71c1c;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Roboto Condensed', sans-serif;
+            background-image: url('https://stg.1creators.com/static/images/lp/hero-banner-bg-mobile.webp');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #fff;
+        }
+
+        /* --- TRÚC --- */
+        .bamboo-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            z-index: 5;
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            pointer-events: none;
+        }
+
+        .bamboo-stalk {
+            width: 40px;
+            height: 80px;
+            background-image: url('https://cdn-icons-png.flaticon.com/512/2921/2921840.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: bottom;
+            filter: drop-shadow(0 0 5px rgba(144, 238, 144, 0.5));
+            opacity: 0.9;
+        }
+
+        /* --- CONTAINER CHÍNH --- */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            width: 95%;
+            max-width: 950px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+
+        .top-logo {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.5));
+        }
+
+        /* --- SELECT GIẢI THƯỞNG --- */
+        .prize-selector-container {
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        select#prizeSelect {
+            appearance: none;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #FFD700;
+            color: #FFD700;
+            padding: 10px 40px 10px 20px;
+            font-size: 1.3rem;
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            outline: none;
+            text-align: center;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        select#prizeSelect:hover {
+            background: rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+        }
+
+        .prize-count-badge {
+            display: block;
+            margin-top: 5px;
+            color: #eee;
+            font-size: 0.9rem;
+            text-shadow: 0 1px 2px #000;
+            font-style: italic;
+        }
+
+        /* --- KHU VỰC SỐ (BÓNG TRÒN) --- */
+        .slots-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 15px 0;
+            padding: 25px 40px;
+            border-radius: 80px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        .number-ball {
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3.8rem;
+            font-weight: 700;
+            color: #fff;
+            border: none;
+            box-shadow: inset -10px -10px 20px rgba(0, 0, 0, 0.5), 5px 10px 15px rgba(0, 0, 0, 0.4);
+            position: relative;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .number-ball::after {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 15%;
+            width: 35%;
+            height: 25%;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 70%);
+            transform: rotate(-45deg);
+            pointer-events: none;
+            filter: blur(1px);
+        }
+
+        /* Màu bóng */
+        .number-ball:nth-child(1) {
+            background: radial-gradient(circle at 30% 30%, #ff5252, #c62828);
+        }
+
+        .number-ball:nth-child(2) {
+            background: radial-gradient(circle at 30% 30%, #ffab40, #ef6c00);
+        }
+
+        .number-ball:nth-child(3) {
+            background: radial-gradient(circle at 30% 30%, #ffd740, #ff8f00);
+            color: #222;
+            text-shadow: none;
+        }
+
+        .number-ball:nth-child(4) {
+            background: radial-gradient(circle at 30% 30%, #69f0ae, #2e7d32);
+        }
+
+        .number-ball:nth-child(5) {
+            background: radial-gradient(circle at 30% 30%, #448aff, #1565c0);
+        }
+
+        .number-ball:nth-child(6) {
+            background: radial-gradient(circle at 30% 30%, #e040fb, #6a1b9a);
+        }
+
+        /* --- KHU VỰC KẾT QUẢ & QUÀ TẶNG --- */
+        .winner-section {
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .winner-section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #winner-prize-category {
+            color: #ddd;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 300;
+            margin-bottom: 5px;
+        }
+
+        #winner-name {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 3.5rem;
+            margin: 0;
+            line-height: 1.1;
+            background: var(--gold-text);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.8));
+        }
+
+        #winner-id {
+            font-size: 1.4rem;
+            color: #40E0D0;
+            margin: 5px 0 10px 0;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 1);
+        }
+
+        /* KHUNG HIỂN THỊ QUÀ TẶNG */
+        .prize-display-box {
+            position: relative;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #FFD700;
+            border-radius: 12px;
+            padding: 10px 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            justify-content: center;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.15);
+            margin-top: 5px;
+            min-width: 400px;
+        }
+
+        .prize-img-preview {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+        }
+
+        #winner-prize-item {
+            font-family: 'Anton', sans-serif;
+            font-size: 2rem;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+
+        /* --- NÚT BẤM HIỆN ĐẠI --- */
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-spin-modern {
+            position: relative;
+            background: radial-gradient(circle, var(--btn-red) 0%, var(--btn-red-dark) 80%);
+            border: none;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            cursor: pointer;
+            box-shadow: 0 0 0 4px #b71c1c, 0 0 0 8px #FFD700, 0 10px 20px rgba(0, 0, 0, 0.6), inset 0 5px 15px rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.1s ease;
+            animation: pulse-gold 2s infinite;
+        }
+
+        .btn-spin-modern:active {
+            transform: scale(0.95) translateY(4px);
+            box-shadow: 0 0 0 4px #b71c1c, 0 0 0 8px #FFD700, 0 2px 5px rgba(0, 0, 0, 0.6);
+        }
+
+        .btn-spin-modern.disabled {
+            filter: grayscale(100%);
+            cursor: not-allowed;
+            animation: none;
+            opacity: 0.6;
+        }
+
+        .btn-text {
+            font-family: 'Anton', sans-serif;
+            font-size: 1.8rem;
+            color: #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .btn-icon {
+            font-size: 2rem;
+            margin-bottom: -5px;
+            filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+        }
+
+        @keyframes pulse-gold {
+            0% {
+                box-shadow: 0 0 0 4px #b71c1c, 0 0 0 8px #FFD700, 0 0 10px rgba(255, 215, 0, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 0 4px #b71c1c, 0 0 0 8px #FFD700, 0 0 30px rgba(255, 215, 0, 0.8);
+            }
+
+            100% {
+                box-shadow: 0 0 0 4px #b71c1c, 0 0 0 8px #FFD700, 0 0 10px rgba(255, 215, 0, 0.5);
+            }
+        }
+
+        /* --- MODAL HỘP QUÀ --- */
+        .gift-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .gift-image {
+            max-width: 500px;
+            max-height: 500px;
+            width: auto;
+            height: auto;
+            cursor: pointer;
+            filter: drop-shadow(0 0 60px rgba(255, 215, 0, 0.4));
+            animation: floatUp 0.8s ease-out forwards, bounce 2s infinite ease-in-out 1s;
+            object-fit: contain;
+        }
+
+        .gift-text {
+            color: #FFD700;
+            font-size: 2.5rem;
+            margin-top: 40px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            font-family: 'Anton', sans-serif;
+            animation: fadeIn 2s ease;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 1);
+        }
+
+        @keyframes floatUp {
+            from {
+                transform: translateY(100vh) scale(0.5);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bamboo-container">
+        <div class="bamboo-stalk"></div>
+        <div class="bamboo-stalk"></div>
+        <div class="bamboo-stalk"></div>
+        <div class="bamboo-stalk"></div>
+        <div class="bamboo-stalk"></div>
+        <div class="bamboo-stalk"></div>
+        <div class="bamboo-stalk"></div>
+    </div>
+
+    <a href="../index.html"
+        style="position: fixed; top: 20px; left: 20px; z-index: 100; text-decoration: none; background: linear-gradient(90deg, #FFD700, #FDB931); color: #b71c1c; padding: 10px 20px; border-radius: 30px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 2px solid #fff; font-family: 'Roboto Condensed', sans-serif;">⬅
+        QUAY VỀ</a>
+
+    <div class="main-container">
+        <img src="https://stg.1creators.com/static/images/logo.png" alt="Logo" class="top-logo">
+
+        <div class="prize-selector-container">
+            <select id="prizeSelect" onchange="updatePrizeDisplay()">
+                <option value="">-- CHỌN GIẢI THƯỞNG --</option>
+            </select>
+            <span class="prize-count-badge" id="prizeCountBadge">Hệ thống sẵn sàng</span>
+        </div>
+
+        <div class="slots-container">
+            <div class="number-ball" id="ball-1">0</div>
+            <div class="number-ball" id="ball-2">0</div>
+            <div class="number-ball" id="ball-3">0</div>
+            <div class="number-ball" id="ball-4">0</div>
+            <div class="number-ball" id="ball-5">0</div>
+            <div class="number-ball" id="ball-6">0</div>
+        </div>
+
+        <div class="winner-section" id="winnerSection">
+            <div id="winner-prize-category">GIẢI THƯỞNG</div>
+            <h2 id="winner-name">???</h2>
+            <div id="winner-id"></div>
+
+            <div class="prize-display-box">
+                <img src="" id="prizePreviewImg" class="prize-img-preview" style="display:none">
+                <div id="winner-prize-item">---</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="spinBtn" class="btn-spin-modern disabled" onclick="startSpin()">
+                <div class="btn-icon">🎲</div>
+                <div class="btn-text">QUAY</div>
+            </button>
+        </div>
+    </div>
+
+    <div class="gift-overlay" id="giftOverlay" onclick="openGift()">
+        <img src="" alt="Gift" class="gift-image" id="giftImageElem">
+        <div class="gift-text">CHẠM ĐỂ MỞ QUÀ!</div>
+    </div>
+
+    <script>
+        let prizes = [];
+        let participants = [];
+        let isSpinning = false;
+        let currentWinner = null;
+        let currentPrizeIndex = -1;
+
+        // Cấu hình số lượng bóng
+        const BALL_COUNT = 6;
+        const DEFAULT_GIFT_IMG = "https://cdn-icons-png.flaticon.com/512/4213/4213958.png";
+
+        const balls = Array.from(document.querySelectorAll('.number-ball'));
+        const winnerSection = document.getElementById('winnerSection');
+        const winnerNameEl = document.getElementById('winner-name');
+        const winnerIdEl = document.getElementById('winner-id');
+        const winnerCategoryEl = document.getElementById('winner-prize-category');
+        const winnerItemEl = document.getElementById('winner-prize-item');
+        const prizePreviewImg = document.getElementById('prizePreviewImg');
+        const spinBtn = document.getElementById('spinBtn');
+        const giftOverlay = document.getElementById('giftOverlay');
+        const giftImageElem = document.getElementById('giftImageElem');
+        const prizeSelect = document.getElementById('prizeSelect');
+        const prizeCountBadge = document.getElementById('prizeCountBadge');
+
+        // --- KHỞI TẠO ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDataFromSystem();
+        });
+
+        function loadDataFromSystem() {
+            // 1. Tải danh sách nhân viên
+            const storedParticipants = localStorage.getItem('lucky_draw_participants');
+            if (storedParticipants) {
+                try {
+                    const parsedParticipants = JSON.parse(storedParticipants);
+                    if (Array.isArray(parsedParticipants) && parsedParticipants.length > 0) {
+                        // Map dữ liệu để đảm bảo đúng format game cần (đặc biệt là padding STT)
+                        participants = parsedParticipants.map(p => ({
+                            stt: (p.stt || "").toString().padStart(BALL_COUNT, '0'),
+                            name: p.name || "",
+                            id: p.id || ""
+                        }));
+                        console.log(`✅ Đã tải ${participants.length} nhân viên từ hệ thống.`);
+                    }
+                } catch (e) {
+                    console.error("Lỗi khi tải dữ liệu nhân viên:", e);
+                }
+            } else {
+                alert("⚠️ CHƯA CÓ DỮ LIỆU NHÂN VIÊN!\nVui lòng quay lại Menu để nạp danh sách.");
+            }
+
+            // 2. Tải danh sách giải thưởng
+            const storedPrizes = localStorage.getItem('lucky_draw_prizes');
+            if (storedPrizes) {
+                try {
+                    const parsedPrizes = JSON.parse(storedPrizes);
+                    if (Array.isArray(parsedPrizes) && parsedPrizes.length > 0) {
+                        prizes = parsedPrizes.map(p => ({
+                            name: p.name || "",
+                            quantity: parseInt(p.quantity) || 0,
+                            item: p.item || "",
+                            image: p.image || ""
+                        }));
+                        console.log(`✅ Đã tải ${prizes.length} giải thưởng từ hệ thống.`);
+
+                        // Tìm giải đầu tiên còn quà
+                        currentPrizeIndex = prizes.findIndex(p => p.quantity > 0);
+                        renderPrizeDropdown(); // Vẽ lại dropdown
+                        updatePrizeDisplay();  // Cập nhật hiển thị giải hiện tại
+                    }
+                } catch (e) {
+                    console.error("Lỗi khi tải dữ liệu giải thưởng:", e);
+                }
+            } else {
+                console.warn("Chưa có dữ liệu giải thưởng!");
+            }
+
+            checkReady();
+        }
+
+        function renderPrizeDropdown() {
+            prizeSelect.innerHTML = ''; // Xóa hết option cũ
+
+            if (prizes.length === 0) {
+                prizeSelect.innerHTML = '<option value="">-- CHƯA CÓ GIẢI --</option>';
+                return;
+            }
+
+            prizes.forEach((p, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.text = `${p.name} (${p.quantity})`;
+                if (p.quantity <= 0) {
+                    option.disabled = true; // Khóa giải đã hết
+                    option.text += " - HẾT";
+                }
+                prizeSelect.appendChild(option);
+            });
+
+            // Tự động chọn giải hiện tại (giải đầu tiên còn quà)
+            if (currentPrizeIndex !== -1) {
+                prizeSelect.value = currentPrizeIndex;
+            }
+        }
+
+        function updatePrizeDisplay() {
+            const idx = prizeSelect.value;
+            if (idx === "" || idx === null) {
+                currentPrizeIndex = -1;
+                spinBtn.classList.add('disabled');
+                return;
+            }
+
+            const newIndex = parseInt(idx);
+
+            // Nếu đổi giải khác -> Reset màn hình
+            if (newIndex !== currentPrizeIndex) {
+                winnerNameEl.innerText = "???";
+                winnerIdEl.innerText = "";
+                winnerSection.classList.remove('show'); // Ẩn kết quả cũ
+
+                balls.forEach(ball => {
+                    delete ball.dataset.locked;
+                    ball.innerText = "0";
+                    ball.style.transform = "scale(1)";
+                    ball.style.color = "#fff";
+                    ball.style.textShadow = "0 2px 5px rgba(0,0,0,0.5)";
+                });
+            }
+
+            currentPrizeIndex = newIndex;
+            const p = prizes[currentPrizeIndex];
+
+            prizeCountBadge.innerText = `Còn lại: ${p.quantity} suất`;
+            winnerCategoryEl.innerText = p.name;
+            winnerItemEl.innerText = p.item;
+
+            const imgSrc = (p.image && p.image.length > 5) ? p.image : "";
+            if (imgSrc) {
+                prizePreviewImg.src = imgSrc;
+                prizePreviewImg.style.display = "block";
+            } else {
+                prizePreviewImg.style.display = "none";
+            }
+
+            // Nếu giải này đã hết -> Khóa nút quay
+            if (p.quantity <= 0) {
+                spinBtn.classList.add('disabled');
+                prizeCountBadge.innerText = "ĐÃ HẾT QUÀ";
+                prizeCountBadge.style.color = "#ff5252";
+            } else {
+                // Chỉ hiện khung kết quả mẫu để người dùng biết đang quay giải gì
+                winnerSection.classList.add('show');
+                checkReady();
+            }
+        }
+
+        function checkReady() {
+            if (participants.length > 0 && currentPrizeIndex !== -1 && prizes[currentPrizeIndex].quantity > 0) {
+                spinBtn.classList.remove('disabled');
+            } else {
+                spinBtn.classList.add('disabled');
+            }
+        }
+
+        // --- CORE LOGIC ---
+        function startSpin() {
+            // Tải lại dữ liệu mới nhất (để đồng bộ nếu có tab khác đang quay)
+            const storedPrizes = localStorage.getItem('lucky_draw_prizes');
+            if (storedPrizes) prizes = JSON.parse(storedPrizes);
+
+            if (isSpinning) return;
+            if (currentPrizeIndex === -1) { alert("Vui lòng chọn giải thưởng!"); return; }
+            if (participants.length === 0) { alert("Chưa có dữ liệu nhân viên!"); return; }
+
+            const prize = prizes[currentPrizeIndex];
+            if (prize.quantity <= 0) {
+                alert("Giải thưởng này đã hết! Hệ thống sẽ tải lại danh sách.");
+                loadDataFromSystem(); // Reload để tìm giải tiếp theo
+                return;
+            }
+
+            // Lọc người chơi (Ở đây cho phép trúng nhiều lần nên dùng toàn bộ danh sách)
+            const availableParticipants = participants;
+            if (availableParticipants.length === 0) { alert("Hết người tham gia!"); return; }
+
+            isSpinning = true;
+            spinBtn.classList.add('disabled');
+            winnerNameEl.innerText = "ĐANG QUAY...";
+            winnerIdEl.innerText = "";
+            prizeSelect.disabled = true;
+
+            // CHỌN NGƯỜI THẮNG NGẪU NHIÊN
+            const winnerIndex = Math.floor(Math.random() * availableParticipants.length);
+            currentWinner = availableParticipants[winnerIndex];
+
+            // Xử lý STT
+            let targetStt = currentWinner.stt || "000000";
+            targetStt = targetStt.replace(/[^0-9]/g, '');
+            if (targetStt.length > BALL_COUNT) targetStt = targetStt.slice(-BALL_COUNT);
+            if (targetStt.length < BALL_COUNT) targetStt = targetStt.padStart(BALL_COUNT, '0');
+
+            const targetDigits = targetStt.split('');
+
+            // --- ANIMATION ---
+            const intervals = [];
+            balls.forEach((ball, idx) => {
+                delete ball.dataset.locked;
+                ball.style.transform = "scale(1)";
+                ball.style.color = "#fff";
+                const interval = setInterval(() => {
+                    ball.innerText = Math.floor(Math.random() * 10);
+                }, 50);
+                intervals.push(interval);
+            });
+
+            let delay = 1000;
+            targetDigits.forEach((digit, index) => {
+                setTimeout(() => {
+                    clearInterval(intervals[index]);
+                    balls[index].innerText = digit;
+                    balls[index].dataset.locked = "true";
+                    balls[index].style.transform = "scale(1.3)";
+                    balls[index].style.color = "#FFD700";
+                    balls[index].style.textShadow = "0 0 15px rgba(255, 215, 0, 0.8)";
+                    setTimeout(() => { balls[index].style.transform = "scale(1)"; }, 200);
+
+                    if (index === BALL_COUNT - 1) {
+                        setTimeout(showGiftBox, 800);
+                    }
+                }, delay);
+                delay += 600;
+            });
+        }
+
+        function showGiftBox() {
+            const prize = prizes[currentPrizeIndex];
+            const imgSrc = (prize.image && prize.image.length > 5) ? prize.image : DEFAULT_GIFT_IMG;
+            giftImageElem.src = imgSrc;
+            giftOverlay.style.display = 'flex';
+        }
+
+        function openGift() {
+            giftOverlay.style.display = 'none';
+
+            const prize = prizes[currentPrizeIndex];
+            winnerCategoryEl.innerText = prize.name;
+            winnerNameEl.innerText = currentWinner.name;
+            winnerIdEl.innerText = "MNV: " + currentWinner.id;
+            winnerItemEl.innerText = prize.item;
+
+            // --- CẬP NHẬT KHO QUÀ ---
+            prizes[currentPrizeIndex].quantity--;
+            localStorage.setItem('lucky_draw_prizes', JSON.stringify(prizes));
+
+            // --- LƯU LỊCH SỬ THẮNG ---
+            saveWinnerToSystem({
+                name: currentWinner.name,
+                id: currentWinner.id,
+                prize: prize.name,
+                prizeItem: prize.item,
+                timestamp: Date.now(),
+                gameType: "Quay Số"
+            });
+
+            // Cập nhật UI
+            prizeCountBadge.innerText = `Còn lại: ${prizes[currentPrizeIndex].quantity} suất`;
+            renderPrizeDropdown(); // Cập nhật dropdown (để hiện số lượng mới hoặc disable nếu hết)
+
+            launchBambooFireworks();
+
+            isSpinning = false;
+            spinBtn.classList.remove('disabled');
+            prizeSelect.disabled = false;
+
+            // Nếu giải vừa quay đã hết, tự động chuyển giải sau 2s
+            if (prizes[currentPrizeIndex].quantity <= 0) {
+                setTimeout(() => {
+                    loadDataFromSystem(); // Reload để tìm giải tiếp theo
+                }, 3000);
+            }
+        }
+
+        function saveWinnerToSystem(winnerData) {
+            let winners = JSON.parse(localStorage.getItem('lucky_draw_winners') || '[]');
+            winners.push(winnerData);
+            localStorage.setItem('lucky_draw_winners', JSON.stringify(winners));
+            console.log("Saved winner:", winnerData);
+        }
+
+        function launchBambooFireworks() {
+            const duration = 3000;
+            const end = Date.now() + duration;
+            const colors = ['#ff0000', '#ffd700', '#ffffff'];
+
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: colors });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+    </script>
+</body>
+
+</html>

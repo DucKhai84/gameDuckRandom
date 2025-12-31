@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Launcher & Data Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- CẤU HÌNH CHUNG --- */
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            background-image: url("yep-bg.jpg");
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        /* --- TOAST NOTIFICATION --- */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            min-width: 280px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInToast 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            backdrop-filter: blur(8px);
+            pointer-events: auto;
+            transition: all 0.3s ease;
+        }
+
+        .toast.success {
+            background: rgba(34, 197, 94, 0.95);
+            border-left: 5px solid #14532d;
+        }
+
+        .toast.error {
+            background: rgba(239, 68, 68, 0.95);
+            border-left: 5px solid #7f1d1d;
+        }
+
+        .toast.reminder {
+            background: rgba(249, 115, 22, 0.95);
+            border-left: 5px solid #7c2d12;
+            animation: pulse-toast 2s infinite;
+        }
+
+        @keyframes slideInToast {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOutToast {
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse-toast {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* --- WIDGET MENU --- */
+        .glass-nav {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            width: max-content;
+            max-width: 95vw;
+            padding: 15px 25px;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 20px;
+            animation: slideInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translate(-50%, 50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        /* --- MENU LIST --- */
+        .nav-list {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            padding-right: 20px;
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #1f2937;
+            transition: all 0.2s ease;
+            position: relative;
+            background: rgba(255, 255, 255, 0.4);
+            width: 70px;
+            cursor: pointer;
+        }
+
+        .nav-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            background: #fff;
+        }
+
+        .nav-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            background: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%);
+            box-shadow: 0 8px 20px rgba(255, 94, 98, 0.4);
+            transform: translateY(-5px);
+            color: white;
+        }
+
+        .nav-item:hover .nav-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .nav-item.history-btn:hover {
+            background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+            box-shadow: 0 8px 20px rgba(138, 43, 226, 0.4);
+        }
+
+        .nav-item.disabled {
+            opacity: 0.5;
+            filter: grayscale(100%);
+            cursor: not-allowed;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- ADMIN SECTION --- */
+        .admin-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-grid {
+            display: flex;
+            gap: 15px;
+        }
+
+        .admin-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Nút Import */
+        .file-upload-label {
+            background: #fff;
+            border: 2px dashed #94a3b8;
+            color: #475569;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-align: center;
+            width: 90px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .file-upload-label:hover {
+            background: #f0f9ff;
+            color: #0284c7;
+            border-color: #0284c7;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Nút Sửa (View/Edit) */
+        .btn-view-list {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 3px 8px rgba(99, 102, 241, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-view-list:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        /* --- MODAL QUẢN LÝ DỮ LIỆU --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-box {
+            background: #fff;
+            width: 95%;
+            max-width: 900px;
+            height: 85vh;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            animation: zoomIn 0.3s ease;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: #1e293b;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        /* Toolbar (Add + Search) */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-add-row {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
+        }
+
+        .btn-add-row:hover {
+            background: #2563eb;
+        }
+
+        /* Search Input */
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box input {
+            padding: 8px 10px 8px 35px;
+            /* Chừa chỗ cho icon */
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+            transition: 0.2s;
+            width: 200px;
+        }
+
+        .search-box input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 10px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        /* Table Editor Style */
+        .editor-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .editor-table th {
+            background: #f8fafc;
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+            color: #475569;
+        }
+
+        .editor-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .editable-cell {
+            background: #fff;
+            border: 1px solid transparent;
+            padding: 8px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+
+        .editable-cell:focus {
+            background: #fffbeb;
+            border-color: #f59e0b;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        }
+
+        .editable-cell:hover {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+        }
+
+        .delete-row-btn {
+            color: #ef4444;
+            background: #fee2e2;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+
+        .delete-row-btn:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .modal-footer {
+            padding-top: 15px;
+            border-top: 2px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+            transition: 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-clear-all {
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-clear-all:hover {
+            background: #ef4444;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="toast-container"></div>
+
+    <div class="glass-nav">
+        <nav class="nav-list">
+            <a href="./duck/index.html" class="nav-item">
+                <img src="https://cdn-icons-png.flaticon.com/512/2663/2663004.png" class="nav-icon" alt="Duck">
+                <span class="nav-label">Đua Vịt</span>
+            </a>
+            <a href="./horse/index.html" class="nav-item">
+                <img src="https://cdn-icons-png.flaticon.com/512/2316/2316654.png" class="nav-icon" alt="Horse">
+                <span class="nav-label">Đua Ngựa</span>
+            </a>
+            <a href="./Random/ramdom.html" class="nav-item">
+                <img src="https://cdn-icons-png.flaticon.com/512/3571/3571276.png" class="nav-icon" alt="Random">
+                <span class="nav-label">Quay Số</span>
+            </a>
+            <a href="./Ticke.me Fake/index.html" class="nav-item">
+                <img src="https://cdn-icons-png.flaticon.com/512/4213/4213958.png" class="nav-icon" alt="Ticket">
+                <span class="nav-label">Vé Số</span>
+            </a>
+            <a href="./winner/index.html" class="nav-item history-btn">
+                <img src="https://cdn-icons-png.flaticon.com/512/3112/3112946.png" class="nav-icon" alt="History">
+                <span class="nav-label">Kết Quả</span>
+            </a>
+        </nav>
+
+        <div class="admin-section">
+            <div class="btn-grid">
+                <div class="admin-group">
+                    <label for="csvEmp" class="file-upload-label" title="Import File Excel/CSV">
+                        <i class="fa-solid fa-file-import"></i> Import
+                    </label>
+                    <input type="file" id="csvEmp" accept=".csv">
+                    <button class="btn-view-list" onclick="manageData('emp')">
+                        <i class="fa-solid fa-users-gear"></i> Xem DS NV
+                    </button>
+                </div>
+
+                <div class="admin-group">
+                    <label for="csvPrize" class="file-upload-label" title="Import File Excel/CSV">
+                        <i class="fa-solid fa-file-import"></i> Import
+                    </label>
+                    <input type="file" id="csvPrize" accept=".csv">
+                    <button class="btn-view-list" onclick="manageData('prize')">
+                        <i class="fa-solid fa-gift"></i> Xem DS Quà
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="manageModal" class="modal-overlay" onclick="if(event.target == this) closeManageModal()">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span id="modalTitle">Quản Lý Dữ Liệu</span>
+                <span style="cursor:pointer; font-size:1.5rem; color:#64748b;"
+                    onclick="closeManageModal()">&times;</span>
+            </div>
+
+            <div class="toolbar">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <button class="btn-add-row" onclick="addNewRow()">
+                        <i class="fa-solid fa-plus"></i> Thêm Dòng Mới
+                    </button>
+                    <span style="font-size:0.85rem; color:#64748b;">Tổng: <b id="totalCount">0</b></span>
+                </div>
+
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm..." onkeyup="handleSearch()">
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <div id="tableContainer">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <button class="btn-clear-all" onclick="clearAllData()">🗑️ Xóa Tất Cả</button>
+                </div>
+                <button class="btn-save" onclick="saveCurrentData()">💾 LƯU THAY ĐỔI</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- TOAST NOTIFICATION ---
+        function showToast(message, type = 'info', duration = 3000, id = null) {
+            const container = document.getElementById('toast-container');
+            if (id && document.getElementById(id)) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            if (id) toast.id = id;
+            let icon = 'ℹ️';
+            if (type === 'success') icon = '✅'; else if (type === 'error') icon = '❌'; else if (type === 'reminder') icon = '⚠️';
+            toast.innerHTML = `<span style="font-size:1.2rem">${icon}</span><span style="flex:1">${message}</span>${duration === 0 ? '' : '<span style="cursor:pointer; opacity:0.7" onclick="this.parentElement.remove()">✖</span>'}`;
+            container.appendChild(toast);
+            if (duration > 0) { setTimeout(() => { toast.style.animation = 'fadeOutToast 0.5s forwards'; setTimeout(() => toast.remove(), 500); }, duration); }
+        }
+        function removeToastById(id) { const toast = document.getElementById(id); if (toast) { toast.style.animation = 'fadeOutToast 0.5s forwards'; setTimeout(() => toast.remove(), 500); } }
+
+        // --- GLOBAL VARIABLES FOR EDITING ---
+        let currentEditType = ''; // 'emp' or 'prize'
+        let currentData = [];
+        let currentSearchTerm = ''; // Biến lưu từ khóa tìm kiếm
+
+        // --- IMPORT CSV LOGIC (Giữ nguyên) ---
+        document.getElementById('csvEmp').addEventListener('change', function (e) { handleImport(e, 'emp'); });
+        document.getElementById('csvPrize').addEventListener('change', function (e) { handleImport(e, 'prize'); });
+
+        function handleImport(e, type) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const text = event.target.result;
+                const lines = text.split('\n');
+                const newData = [];
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    if (i === 0 && (line.toLowerCase().includes('stt') || line.toLowerCase().includes('tên'))) continue;
+                    const parts = line.split(',');
+                    if (parts.length >= 2) {
+                        if (type === 'emp') {
+                            newData.push({
+                                stt: parts[0].trim().replace(/^"|"$/g, ''),
+                                name: parts[1].trim().replace(/^"|"$/g, ''),
+                                id: (parts[2] || '').trim().replace(/^"|"$/g, '')
+                            });
+                        } else {
+                            newData.push({
+                                name: parts[0].trim().replace(/^"|"$/g, ''),
+                                quantity: parseInt(parts[1].trim().replace(/^"|"$/g, '')),
+                                item: (parts[2] || '').trim().replace(/^"|"$/g, ''),
+                                image: (parts[3] || '').trim().replace(/^"|"$/g, '')
+                            });
+                        }
+                    }
+                }
+                if (newData.length > 0) {
+                    const key = type === 'emp' ? 'lucky_draw_participants' : 'lucky_draw_prizes';
+                    localStorage.setItem(key, JSON.stringify(newData));
+                    showToast(`Đã import thành công ${newData.length} dòng!`, 'success');
+                    checkGameLock();
+                } else {
+                    showToast("File lỗi hoặc không có dữ liệu!", 'error');
+                }
+                e.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        // --- MANAGE DATA LOGIC ---
+        function manageData(type) {
+            currentEditType = type;
+            const key = type === 'emp' ? 'lucky_draw_participants' : 'lucky_draw_prizes';
+            const rawData = localStorage.getItem(key);
+
+            if (!rawData) {
+                currentData = [];
+            } else {
+                currentData = JSON.parse(rawData);
+            }
+
+            document.getElementById('modalTitle').innerText = type === 'emp' ? 'Quản Lý Nhân Viên' : 'Quản Lý Giải Thưởng';
+
+            // Reset search khi mở modal
+            currentSearchTerm = '';
+            document.getElementById('searchInput').value = '';
+
+            renderTable();
+            document.getElementById('manageModal').style.display = 'flex';
+        }
+
+        function closeManageModal() {
+            document.getElementById('manageModal').style.display = 'none';
+        }
+
+        // --- SEARCH LOGIC ---
+        function handleSearch() {
+            const input = document.getElementById('searchInput');
+            currentSearchTerm = input.value.trim().toLowerCase();
+            renderTable();
+        }
+
+        // --- LOGIC THÊM DÒNG MỚI ---
+        function addNewRow() {
+            // Reset search để thấy dòng mới thêm
+            currentSearchTerm = '';
+            document.getElementById('searchInput').value = '';
+
+            if (currentEditType === 'emp') {
+                currentData.push({
+                    stt: currentData.length + 1,
+                    name: 'Nhân viên mới',
+                    id: ''
+                });
+            } else {
+                currentData.push({
+                    name: 'Giải thưởng mới',
+                    quantity: 1,
+                    item: 'Hiện vật',
+                    image: ''
+                });
+            }
+            renderTable();
+            // Scroll xuống dưới cùng
+            const modalBody = document.querySelector('.modal-body');
+            setTimeout(() => modalBody.scrollTop = modalBody.scrollHeight, 100);
+        }
+
+        function renderTable() {
+            const container = document.getElementById('tableContainer');
+            document.getElementById('totalCount').innerText = currentData.length;
+
+            if (currentData.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8;">Chưa có dữ liệu nào. Hãy Import file hoặc Thêm dòng mới.</div>';
+                return;
+            }
+
+            let html = '<table class="editor-table"><thead><tr>';
+
+            if (currentEditType === 'emp') {
+                html += '<th style="width:50px">STT</th><th>Họ và Tên</th><th>Mã NV</th><th style="width:50px">Xóa</th>';
+            } else {
+                html += '<th>Tên Giải</th><th style="width:80px">SL</th><th>Hiện Vật</th><th style="width:50px">Xóa</th>';
+            }
+            html += '</tr></thead><tbody>';
+
+            // Duyệt qua dữ liệu (currentData) nhưng chỉ hiển thị dòng khớp với search
+            currentData.forEach((row, index) => {
+                // Logic Search
+                if (currentSearchTerm) {
+                    const rowText = Object.values(row).join(' ').toLowerCase();
+                    if (!rowText.includes(currentSearchTerm)) return; // Bỏ qua nếu không khớp
+                }
+
+                html += `<tr>`;
+                if (currentEditType === 'emp') {
+                    html += `
+                        <td><div class="editable-cell" contenteditable="true" onblur="updateRow(${index}, 'stt', this.innerText)">${row.stt}</div></td>
+                        <td><div class="editable-cell" contenteditable="true" onblur="updateRow(${index}, 'name', this.innerText)">${row.name}</div></td>
+                        <td><div class="editable-cell" contenteditable="true" onblur="updateRow(${index}, 'id', this.innerText)">${row.id || ''}</div></td>
+                    `;
+                } else {
+                    html += `
+                        <td><div class="editable-cell" contenteditable="true" onblur="updateRow(${index}, 'name', this.innerText)">${row.name}</div></td>
+                        <td><div class="editable-cell" contenteditable="true" onblur="updateRow(${index}, 'quantity', this.innerText)">${row.quantity}</div></td>
+                        <td><div class="editable-cell" contenteditable="true" onblur="updateRow(${index}, 'item', this.innerText)">${row.item || ''}</div></td>
+                    `;
+                }
+                html += `
+                    <td style="text-align:center;">
+                        <button class="delete-row-btn" onclick="deleteRow(${index})"><i class="fa fa-trash"></i></button>
+                    </td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+
+            // Nếu search không thấy kết quả
+            if (html.indexOf('<tr>') === -1 && currentData.length > 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">Không tìm thấy kết quả phù hợp.</div>';
+            } else {
+                container.innerHTML = html;
+            }
+        }
+
+        // Lưu ý: updateRow và deleteRow dùng 'index' của mảng gốc (currentData)
+        // Điều này hoạt động đúng vì khi render, chúng ta gán index gốc vào hàm onclick/onblur
+        window.updateRow = function (index, field, value) {
+            if (currentEditType === 'prize' && field === 'quantity') {
+                currentData[index][field] = parseInt(value) || 0;
+            } else {
+                currentData[index][field] = value.trim();
+            }
+        };
+
+        window.deleteRow = function (index) {
+            if (confirm('Bạn chắc chắn muốn xóa dòng này?')) {
+                currentData.splice(index, 1);
+                renderTable(); // Render lại sẽ tự động áp dụng search nếu đang có
+            }
+        };
+
+        function clearAllData() {
+            if (confirm('CẢNH BÁO: Xóa toàn bộ dữ liệu. Bạn chắc không?')) {
+                currentData = [];
+                renderTable();
+            }
+        }
+
+        function saveCurrentData() {
+            const key = currentEditType === 'emp' ? 'lucky_draw_participants' : 'lucky_draw_prizes';
+            localStorage.setItem(key, JSON.stringify(currentData));
+
+            showToast('✅ Đã lưu thay đổi thành công!', 'success');
+            checkGameLock();
+            closeManageModal();
+        }
+
+        // --- GAME LOCK ---
+        function checkGameLock() {
+            const hasParticipants = localStorage.getItem('lucky_draw_participants');
+            const hasPrizes = localStorage.getItem('lucky_draw_prizes');
+            const pList = hasParticipants ? JSON.parse(hasParticipants) : [];
+            const rList = hasPrizes ? JSON.parse(hasPrizes) : [];
+
+            const isLocked = pList.length === 0 || rList.length === 0;
+            const REMINDER_ID = 'import-reminder-toast';
+
+            const gameItems = document.querySelectorAll('.nav-item:not(.history-btn)');
+            gameItems.forEach(item => {
+                if (isLocked) {
+                    item.classList.add('disabled');
+                    if (item.getAttribute('href')) {
+                        item.dataset.href = item.getAttribute('href');
+                        item.removeAttribute('href');
+                    }
+                } else {
+                    item.classList.remove('disabled');
+                    if (item.dataset.href) {
+                        item.setAttribute('href', item.dataset.href);
+                    }
+                }
+            });
+
+            if (isLocked) {
+                showToast("⚠️ Vui lòng Import/Nhập liệu Nhân viên & Quà!", "reminder", 0, REMINDER_ID);
+            } else {
+                removeToastById(REMINDER_ID);
+            }
+        }
+
+        document.querySelectorAll('.nav-item:not(.history-btn)').forEach(item => {
+            item.addEventListener('click', function (e) {
+                if (this.classList.contains('disabled')) {
+                    e.preventDefault();
+                    const reminder = document.getElementById('import-reminder-toast');
+                    if (reminder) {
+                        reminder.style.transform = 'scale(1.05)';
+                        setTimeout(() => reminder.style.transform = 'scale(1)', 200);
+                    } else {
+                        showToast("⚠️ Vui lòng Import danh sách Nhân viên & Quà để bắt đầu!", "reminder", 0, 'import-reminder-toast');
+                    }
+                }
+            });
+        });
+
+        window.addEventListener('DOMContentLoaded', checkGameLock);
+    </script>
+
+</body>
+
+</html>

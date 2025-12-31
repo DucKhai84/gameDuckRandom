@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Vàng Vinh Danh</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- CẤU HÌNH CHUNG --- */
+        :root {
+            --primary-bg: #4a0072;
+            --secondary-bg: #240046;
+            --gold-gradient: linear-gradient(180deg, #FFD700 0%, #FDB931 50%, #d4af37 100%);
+
+            /* [CHỈNH SỬA] Đổi nền kính sang màu tối để nổi bật trên background Vàng/Sáng */
+            --card-glass: rgba(20, 0, 50, 0.75);
+
+            --card-border: rgba(255, 215, 0, 0.4);
+            /* Viền vàng nhẹ */
+            --text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+
+            /* GIỮ NGUYÊN BACKGROUND CỦA BẠN */
+            background-image: url("../yep-bg.jpg");
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        /* [MỚI] NÚT QUAY LẠI */
+        .btn-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #FFD700, #FDB931);
+            color: #4a0072;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            border: 2px solid #fff;
+            transition: transform 0.2s;
+        }
+
+        .btn-back:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+
+        /* --- BACKGROUND DECORATION --- */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(255, 215, 0, 0.1) 2px, transparent 2.5px),
+                radial-gradient(circle at 90% 10%, rgba(255, 100, 100, 0.1) 2px, transparent 2.5px);
+            background-size: 50px 50px;
+            z-index: -1;
+        }
+
+        /* --- TIÊU ĐỀ --- */
+        .page-title {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            margin-top: 20px;
+            /* Thêm chút margin để không bị nút back che */
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8));
+            /* Tăng bóng đổ cho chữ dễ đọc */
+            letter-spacing: 2px;
+        }
+
+        /* --- CONTAINER --- */
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        /* --- CARD STYLE --- */
+        .card {
+            background: var(--card-glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            /* Tăng bóng đổ */
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            border-color: #FFD700;
+        }
+
+        /* Avatar */
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            overflow: hidden;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Text Info */
+        .info {
+            flex: 1;
+            color: white;
+        }
+
+        .rank-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            opacity: 0.9;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .department {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Badge Icon */
+        .badge-icon {
+            position: absolute;
+            top: -15px;
+            right: 20px;
+            font-size: 2.5rem;
+            filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
+        }
+
+        /* --- GRID STRUCTURE --- */
+
+        /* 1. Giải Đặc Biệt */
+        .special-tier {
+            width: 60%;
+            min-width: 350px;
+            border: 2px solid #FFD700;
+            background: linear-gradient(135deg, rgba(74, 0, 114, 0.85), rgba(36, 0, 70, 0.9));
+            /* Nền đậm hơn */
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+            padding: 30px;
+        }
+
+        .special-tier .avatar {
+            width: 100px;
+            height: 100px;
+            border-color: #FFD700;
+        }
+
+        .special-tier .rank-title {
+            color: #FFD700;
+        }
+
+        .special-tier .crown-icon {
+            position: absolute;
+            top: -25px;
+            left: -20px;
+            font-size: 3.5rem;
+            color: #FFD700;
+            transform: rotate(-15deg);
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+        }
+
+        .special-tag {
+            background: var(--gold-gradient);
+            color: #4a0072;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-top: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 2. Grid Rows */
+        .grid-row {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .normal-card {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        /* Colors */
+        .tier-1 {
+            border-left: 5px solid #2ecc71;
+        }
+
+        .tier-1 .rank-title {
+            color: #2ecc71;
+        }
+
+        .tier-1 .avatar {
+            border-color: #2ecc71;
+        }
+
+        .tier-2 {
+            border-left: 5px solid #3498db;
+        }
+
+        .tier-2 .rank-title {
+            color: #3498db;
+        }
+
+        .tier-2 .avatar {
+            border-color: #3498db;
+        }
+
+        .tier-3 {
+            border-left: 5px solid #e056fd;
+        }
+
+        .tier-3 .rank-title {
+            color: #e056fd;
+        }
+
+        .tier-3 .avatar {
+            border-color: #e056fd;
+        }
+
+        /* Icons */
+        .medal-1 {
+            color: #FFD700;
+        }
+
+        .medal-2 {
+            color: #C0C0C0;
+        }
+
+        .medal-3 {
+            color: #CD7F32;
+        }
+
+        /* Decoration */
+        .decor-icon {
+            position: absolute;
+            font-size: 4rem;
+            opacity: 0.2;
+            color: #fff;
+            z-index: -1;
+        }
+
+        .decor-left {
+            bottom: 50px;
+            left: 50px;
+            transform: rotate(-15deg);
+        }
+
+        .decor-right {
+            bottom: 50px;
+            right: 50px;
+            transform: rotate(15deg);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+                margin-top: 60px;
+            }
+
+            .special-tier {
+                width: 100%;
+            }
+
+            .grid-row {
+                flex-direction: column;
+            }
+
+            .badge-icon {
+                font-size: 2rem;
+                top: -10px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="../index.html" class="btn-back">
+        <i class="fa-solid fa-arrow-left"></i> Quay lại
+    </a>
+
+    <h1 class="page-title">Bảng Vàng Vinh Danh</h1>
+
+    <div class="container">
+        <div class="card special-tier">
+            <i class="fa-solid fa-crown crown-icon"></i>
+            <div class="avatar">
+                <img src="https://ui-avatars.com/api/?name=Nguyen+Van+A&background=FFD700&color=fff&size=128"
+                    alt="Avatar">
+            </div>
+            <div class="info">
+                <div class="rank-title">ĐẶC BIỆT</div>
+                <div class="name">Nguyễn Văn A</div>
+                <div class="department">Phòng IT</div>
+                <div class="special-tag"><i class="fa-solid fa-crown"></i> XUẤT SẮC</div>
+            </div>
+        </div>
+
+        <div class="grid-row">
+            <div class="card normal-card tier-1">
+                <div class="badge-icon medal-1"><i class="fa-solid fa-medal"></i></div>
+                <div class="avatar">
+                    <img src="https://ui-avatars.com/api/?name=Le+Thi+B&background=2ecc71&color=fff&size=128"
+                        alt="Avatar">
+                </div>
+                <div class="info">
+                    <div class="rank-title">GIẢI NHẤT</div>
+                    <div class="name">Lê Thị B</div>
+                    <div class="department">Phòng Marketing</div>
+                </div>
+            </div>
+
+            <div class="card normal-card tier-2">
+                <div class="badge-icon medal-2"><i class="fa-solid fa-medal"></i></div>
+                <div class="avatar">
+                    <img src="https://ui-avatars.com/api/?name=Tran+Van+C&background=3498db&color=fff&size=128"
+                        alt="Avatar">
+                </div>
+                <div class="info">
+                    <div class="rank-title">GIẢI NHÌ</div>
+                    <div class="name">Trần Văn C</div>
+                    <div class="department">Phòng Kế Toán</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-row">
+            <div class="card normal-card tier-3">
+                <div class="badge-icon medal-3"><i class="fa-solid fa-award"></i></div>
+                <div class="avatar">
+                    <img src="https://ui-avatars.com/api/?name=Pham+D&background=9b59b6&color=fff&size=128"
+                        alt="Avatar">
+                </div>
+                <div class="info">
+                    <div class="rank-title">GIẢI KHUYẾN KHÍCH</div>
+                    <div class="name">Phạm D</div>
+                    <div class="department">Phòng HR</div>
+                </div>
+            </div>
+
+            <div class="card normal-card tier-3">
+                <div class="badge-icon medal-3"><i class="fa-solid fa-award"></i></div>
+                <div class="avatar">
+                    <img src="https://ui-avatars.com/api/?name=Hoang+E&background=9b59b6&color=fff&size=128"
+                        alt="Avatar">
+                </div>
+                <div class="info">
+                    <div class="rank-title">GIẢI KHUYẾN KHÍCH</div>
+                    <div class="name">Hoàng E</div>
+                    <div class="department">Phòng Sale</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="decor-icon decor-left"><i class="fa-solid fa-champagne-glasses"></i></div>
+    <div class="decor-icon decor-right"><i class="fa-solid fa-gifts"></i></div>
+
+</body>
+
+</html>

@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Duck Race: Fair Time Logic</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* CSS giữ nguyên */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #222;
+            font-family: 'Segoe UI', sans-serif;
+            user-select: none;
+        }
+
+        #ui-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(to bottom, #0288d1, #01579b);
+            border-bottom: 5px solid #002f6c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label {
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        input {
+            width: 50px;
+            padding: 5px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 6px;
+            border: none;
+            font-size: 16px;
+            height: 30px;
+        }
+
+        #timer {
+            background: #fff;
+            border: 3px solid #000;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 28px;
+            font-weight: bold;
+            padding: 2px 10px;
+            min-width: 130px;
+            text-align: center;
+            color: #222;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-weight: bold;
+            font-size: 14px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            transition: transform 0.1s;
+        }
+
+        button:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+
+        #btn-start {
+            background: #ffca28;
+            color: #e65100;
+            font-size: 16px;
+        }
+
+        #btn-reset {
+            background: #e53935;
+        }
+
+        #scenario-alert {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            background: rgba(1, 87, 155, 0.95);
+            color: #fff;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 24px;
+            pointer-events: none;
+            border: 3px solid #4fc3f7;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 150;
+            text-align: center;
+        }
+
+        #scenario-alert span {
+            display: block;
+            font-size: 14px;
+            color: #b3e5fc;
+            font-weight: normal;
+            margin-top: 5px;
+        }
+
+        #rank-board {
+            position: fixed;
+            top: 90px;
+            right: 10px;
+            width: 140px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            pointer-events: none;
+        }
+
+        .r-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #555;
+            padding: 4px 0;
+        }
+
+        .r-1 {
+            color: #ffeb3b;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        #winner-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .win-box {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            border: 8px solid #ffca28;
+            animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 0 50px rgba(255, 202, 40, 0.5);
+        }
+
+        #win-canvas {
+            width: 200px;
+            height: 150px;
+            margin: 10px 0;
+        }
+
+        .win-title {
+            font-size: 24px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+
+        .win-name {
+            font-size: 50px;
+            color: #e65100;
+            margin: 0;
+            font-weight: 900;
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        .crown {
+            font-size: 60px;
+            margin-bottom: -20px;
+            animation: float 2s infinite ease-in-out;
+        }
+
+        @keyframes popUp {
+            from {
+                transform: scale(0)
+            }
+
+            to {
+                transform: scale(1)
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="ui-layer">
+        <a href="../index.html" style="text-decoration: none;">
+            <button id="btn-back"
+                style="background: linear-gradient(90deg, #FFD700, #FDB931); color: #b71c1c; border: 2px solid #fff; margin-right: 10px;">⬅
+                MENU</button>
+        </a>
+
+        <!-- PRIZE INFO -->
+        <div id="prize-info" style="
+            background: rgba(0,0,0,0.5); 
+            color: #FFD700; 
+            padding: 5px 15px; 
+            border-radius: 10px; 
+            border: 1px solid #FFD700;
+            text-align: center;
+            margin-right: 15px;
+        ">
+            <div id="prize-name" style="font-size: 14px; font-weight: bold; text-transform: uppercase;">ĐANG TẢI...
+            </div>
+            <div id="prize-count" style="font-size: 12px; color: #fff;">---</div>
+        </div>
+
+        <div class="input-group">
+            <label>Vịt</label>
+            <input type="number" id="inp-qty" value="30" min="2" max="200">
+        </div>
+        <div class="input-group">
+            <label>Giây</label>
+            <input type="number" id="inp-time" value="30" min="10" max="600">
+        </div>
+        <div id="timer">00:00.0</div>
+        <button id="btn-start" onclick="startGame()">BATTLE</button>
+        <button id="btn-reset" onclick="resetGame()">RESET</button>
+    </div>
+
+    <div id="scenario-alert">MODE NAME<span>Description</span></div>
+    <div id="rank-board">
+        <div id="rank-list">---</div>
+    </div>
+
+    <div id="winner-screen">
+        <div class="win-box">
+            <div class="crown">👑</div>
+            <h2 class="win-title">Nhà Vô Địch</h2>
+            <canvas id="win-canvas" width="400" height="300"></canvas>
+            <h1 id="win-name" class="win-name">#1</h1>
+            <button id="btn-start" onclick="resetGame()" style="margin-top: 20px;">CHƠI LẠI</button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script>
+        // --- AUDIO ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            if (type === 'whistle') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); osc.frequency.linearRampToValueAtTime(1500, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0, now + 0.5); osc.start(now); osc.stop(now + 0.5);
+            } else if (type === 'slip') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'hit') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(50, now + 0.1);
+                gain.gain.setValueAtTime(0.4, now); gain.gain.linearRampToValueAtTime(0, now + 0.1); osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'zap') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(500, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.2); osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'thunder') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(60, now); osc.frequency.exponentialRampToValueAtTime(10, now + 1.0);
+                gain.gain.setValueAtTime(1.0, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.0); osc.start(now); osc.stop(now + 1.0);
+            } else if (type === 'splash') {
+                let buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.5, audioCtx.sampleRate);
+                let data = buffer.getChannelData(0); for (let i = 0; i < buffer.length; i++) data[i] = Math.random() * 2 - 1;
+                let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let noiseGain = audioCtx.createGain();
+                noise.connect(noiseGain); noiseGain.connect(audioCtx.destination);
+                noiseGain.gain.setValueAtTime(0.5, now); noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); noise.start(now);
+            } else if (type === 'win') {
+                let f = [523, 659, 784, 1046];
+                f.forEach((freq, i) => {
+                    let o = audioCtx.createOscillator(); let g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination);
+                    o.type = 'square'; o.frequency.value = freq; g.gain.setValueAtTime(0.05, now + i * 0.1); g.gain.linearRampToValueAtTime(0, now + i * 0.1 + 0.3);
+                    o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.3);
+                });
+            }
+        }
+
+        // --- CONSTANTS ---
+        const ENGINE = Matter.Engine, BODIES = Matter.Bodies, COMPOSITE = Matter.Composite, BODY = Matter.Body;
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = window.innerWidth, height = window.innerHeight;
+        canvas.width = width; canvas.height = height;
+        window.addEventListener('resize', () => { width = window.innerWidth; height = window.innerHeight; canvas.width = width; canvas.height = height; });
+
+        const MAP_LENGTH = 8000;
+        const TOP_MARGIN = 100;
+        const START_LINE = 200;
+        const FINISH_LINE = MAP_LENGTH - 400;
+        const TRACK_LENGTH = FINISH_LINE - START_LINE;
+
+        const engine = ENGINE.create(); engine.gravity.y = 0;
+        const world = engine.world;
+
+        // --- GAME VARIABLES ---
+        let ducks = [];
+        let rocks = []; let bananas = []; let whirlpools = []; let jellyfish = []; let logs = []; let waves = []; let lightnings = []; let windLines = [];
+        let isRacing = false;
+        let isStormMode = false;
+
+        // ✅ ADD: time-based progress variables
+        let raceStartTime = 0;
+        let raceDuration = 0;
+        let winnerId = -1;
+
+        // PRIZE SYSTEM
+        let prizes = [];
+        let currentPrizeIndex = -1;
+
+        let cameraX = 0;
+        let waterOffset = 0;
+        let globalTimer = 0;
+        let flashOpacity = 0;
+        let windForce = 0;
+
+        // --- LOAD PRIZE ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadCurrentPrize();
+        });
+
+        function loadCurrentPrize() {
+            const storedPrizes = localStorage.getItem('lucky_draw_prizes');
+            if (storedPrizes) {
+                prizes = JSON.parse(storedPrizes);
+                currentPrizeIndex = prizes.findIndex(p => p.quantity > 0);
+                updatePrizeUI();
+            }
+        }
+
+        function updatePrizeUI() {
+            const nameEl = document.getElementById('prize-name');
+            const countEl = document.getElementById('prize-count');
+            const startBtn = document.getElementById('btn-start');
+
+            if (currentPrizeIndex !== -1) {
+                const p = prizes[currentPrizeIndex];
+                nameEl.innerText = p.name;
+                countEl.innerText = `Còn lại: ${p.quantity}`;
+                startBtn.style.opacity = "1";
+                startBtn.style.pointerEvents = "auto";
+            } else {
+                nameEl.innerText = "HẾT QUÀ";
+                countEl.innerText = "Vui lòng nạp thêm";
+                startBtn.style.opacity = "0.5";
+                startBtn.style.pointerEvents = "none";
+            }
+        }
+
+        const HATS = ['#e53935', '#8e24aa', '#1e88e5', '#43a047', '#333', '#fbc02d', null, null, null];
+
+        // --- HELPER FUNCTIONS ---
+        // ✅ ADD: Easing function (Bắt buộc dùng)
+        function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+        function clamp(val, min, max) { return Math.min(Math.max(val, min), max); }
+
+        function getRandomY() {
+            let seed = Math.random();
+            if (seed < 0.3) return TOP_MARGIN + 10 + Math.random() * 50;
+            else if (seed > 0.7) return height - 10 - Math.random() * 50;
+            else return TOP_MARGIN + 60 + Math.random() * (height - TOP_MARGIN - 120);
+        }
+
+        // --- RACE LOGIC (DETERMINISTIC) ---
+        class RaceLogic {
+            constructor(duration, distance, ducks) {
+                this.duration = duration; // seconds
+                this.distance = distance; // pixels
+                this.ducks = ducks;
+                this.startTime = 0;
+                this.lastTime = 0;
+            }
+
+            start() {
+                this.startTime = performance.now() / 1000; // seconds
+                this.lastTime = this.startTime;
+            }
+
+            update(currentTime) {
+                // currentTime is in seconds
+                let dt = currentTime - this.lastTime;
+                this.lastTime = currentTime;
+
+                let elapsed = currentTime - this.startTime;
+                let t = elapsed / this.duration;
+
+                // Clamp t to [0, 1] for position calculation, but allow it to go slightly over for finish check
+                let clampedT = Math.min(Math.max(t, 0), 1);
+
+                // 1. Linear Progress (The Anchor)
+                let baseX = clampedT * this.distance;
+                let raceSpeed = this.distance / this.duration; // pixels per second
+
+                this.ducks.forEach(duck => {
+                    // Initialize penaltyX if not exists
+                    if (typeof duck.penaltyX === 'undefined') duck.penaltyX = 0;
+
+                    // --- COLLISION CHECK ---
+                    if (duck.status === 'NORMAL') {
+                        // Check Logs
+                        for (let log of logs) {
+                            let dx = Math.abs(duck.x - log.position.x);
+                            let dy = Math.abs(duck.y - log.position.y);
+                            if (dx < 35 && dy < 75) {
+                                duck.status = 'HIT_LOG';
+                                duck.stunTimer = 1.0; // 1 second stun
+                                duck.lastLogY = log.position.y;
+                                duck.visualAngle = -0.3;
+                                playSound('hit');
+                            }
+                        }
+                        // Check Bananas
+                        for (let b of bananas) {
+                            if (b.active && Math.hypot(duck.x - b.x, duck.y - b.y) < 25) {
+                                duck.status = 'SLIPPING';
+                                duck.stunTimer = 0.6;
+                                duck.visualAngle = 0.5;
+                                playSound('slip');
+                                b.active = false;
+                                break;
+                            }
+                        }
+                        // Check Jellyfish
+                        for (let j of jellyfish) {
+                            if (j.active && Math.hypot(duck.x - j.x, duck.y - j.y) < 30) {
+                                duck.status = 'SHOCKED';
+                                duck.stunTimer = 1.5;
+                                duck.visualAngle = 0;
+                                playSound('zap');
+                                j.active = false;
+                                break;
+                            }
+                        }
+                        // Check Whirlpools
+                        for (let w of whirlpools) {
+                            if (Math.hypot(duck.x - w.x, duck.y - w.y) < w.radius - 10) {
+                                duck.status = 'SPINNING';
+                                duck.stunTimer = 1.0;
+                                duck.visualAngle = 1.2;
+                                playSound('splash');
+                                break;
+                            }
+                        }
+                    }
+
+                    // --- PENALTY & STATUS LOGIC ---
+                    if (duck.status !== 'NORMAL') {
+                        duck.stunTimer -= dt;
+
+                        // While stunned, fall back relative to the race
+                        // We apply a negative penalty that grows
+                        duck.penaltyX -= raceSpeed * dt * 0.9;
+
+                        // Visual rotation updates
+                        if (duck.status === 'SLIPPING') duck.visualAngle += 15 * dt;
+                        else if (duck.status === 'SPINNING') duck.visualAngle += 20 * dt;
+
+                        if (duck.stunTimer <= 0) {
+                            duck.status = 'NORMAL';
+                            duck.visualAngle = 0;
+                            // Escape maneuver for logs
+                            if (duck.lastLogY) {
+                                let escapeDir = (duck.y > duck.lastLogY) ? 1 : -1;
+                                duck.separationOffsetY = (duck.separationOffsetY || 0) + escapeDir * 50;
+                                duck.lastLogY = null;
+                            }
+                        }
+                    } else {
+                        // Recovery: Rubber band back to position
+                        // Winner recovers faster to ensure they win
+                        let recoveryRate = raceSpeed * dt * 0.5; // Base recovery
+                        if (duck.rank === 1) recoveryRate *= 4.0; // Winner super recovery
+                        else if (duck.rank <= 5) recoveryRate *= 2.0; // Top 5 recover well
+
+                        if (duck.penaltyX < 0) {
+                            duck.penaltyX += recoveryRate;
+                            if (duck.penaltyX > 0) duck.penaltyX = 0;
+                        }
+
+                        // Decay visual angle
+                        duck.visualAngle *= 0.9;
+                    }
+
+                    // 2. X-Axis Noise (Speed Variation)
+                    // Lower Frequency: 0.5 to 1.5 (Smoother acceleration)
+                    // Lower Amplitude: 0.5% to 1.5% of distance (Less rubber-banding)
+                    let frequency = 0.5 + (duck.randomSeed % 10) / 10;
+                    let amplitude = this.distance * (0.005 + (duck.randomSeed % 10) / 1000);
+
+                    // Use Cosine for variety or keep Sine. 
+                    // Adding a secondary low-freq wave for "stamina" variation
+                    let staminaFreq = 0.1 + (duck.randomSeed % 5) / 20;
+                    let staminaAmp = this.distance * 0.02; // Larger but very slow variation
+
+                    let noiseX = Math.sin(elapsed * frequency + duck.randomSeed) * amplitude;
+                    let staminaX = Math.sin(elapsed * staminaFreq) * staminaAmp;
+
+                    // Combine noises
+                    let totalNoise = noiseX + staminaX;
+
+                    // Damping: Reduce noise as t approaches 1 to ensure they finish near their rank
+                    totalNoise *= (1 - Math.pow(clampedT, 2)); // Quadratic damping for smoother finish
+
+                    // 3. Rank Bias (The Rigging)
+                    // Bonus for winner (Rank 1), penalty for loser (Rank N)
+                    // Bias increases quadratically with t
+                    let biasX = 0;
+                    let rankFactor = (this.ducks.length - duck.rank) / this.ducks.length; // 1 (best) to 0 (worst)
+
+                    // Reduce bias impact slightly to keep them closer
+                    if (duck.rank === 1) {
+                        biasX = (this.distance * 0.03) * (clampedT * clampedT);
+                    } else if (duck.rank === this.ducks.length) {
+                        biasX = -(this.distance * 0.03) * (clampedT * clampedT);
+                    } else {
+                        biasX = (this.distance * 0.015) * (rankFactor - 0.5) * (clampedT * clampedT);
+                    }
+
+                    // 4. Final Position Calculation
+                    // Include penaltyX
+                    let finalX = baseX + totalNoise + biasX + duck.penaltyX;
+
+                    if (clampedT >= 1) {
+                        finalX = Math.min(finalX, this.distance);
+                    }
+
+                    finalX = Math.max(0, finalX);
+
+                    // Y-Axis Bobbing (Pure Visual)
+                    // Slower bobbing for "swimming" feel
+                    let bobSpeed = 2 + (duck.randomSeed % 3);
+                    let bobHeight = 3; // Reduced height
+                    let bobY = Math.sin(elapsed * bobSpeed) * bobHeight;
+
+                    // Apply separation offset (decaying)
+                    if (duck.separationOffsetY) {
+                        bobY += duck.separationOffsetY;
+                        duck.separationOffsetY *= 0.95;
+                    }
+
+                    duck.x = START_LINE + finalX;
+                    duck.y = duck.initY + bobY;
+
+                    // Update Matter.js body
+                    if (duck.body) {
+                        BODY.setPosition(duck.body, { x: duck.x, y: duck.y });
+                        BODY.setVelocity(duck.body, { x: 0, y: 0 });
+                        // Apply visual angle
+                        BODY.setAngle(duck.body, duck.visualAngle);
+                        BODY.setAngularVelocity(duck.body, 0);
+                    }
+                });
+
+                return t >= 1; // Return true if race finished
+            }
+        }
+
+        let raceLogic = null;
+
+
+        // --- SPAWNERS ---
+        function spawnStaticObstacles() {
+            bananas = []; whirlpools = []; jellyfish = []; logs = [];
+            let qty = ducks.length;
+            let mapType = Math.random() < 0.5 ? 'TUNNEL' : 'BRIDGE';
+
+            // Reduce density: Use fixed base + very small scaling with qty
+            // Previous: 8 + qty * 0.25 -> New: 5 + qty * 0.05 (Max ~15 for 200 ducks)
+            let logCount = 5 + Math.floor(qty * 0.05);
+            // Clamp max logs
+            logCount = Math.min(logCount, 15);
+
+            for (let i = 0; i < logCount; i++) {
+                // Spread logs out more evenly by dividing map into chunks? 
+                // Or just random is fine if count is low.
+                let lx = START_LINE + 600 + Math.random() * (MAP_LENGTH - 1000);
+                let ly;
+                if (mapType === 'TUNNEL') { if (Math.random() < 0.7) ly = (i % 2 === 0) ? TOP_MARGIN + 40 : height - 40; else ly = getRandomY(); }
+                else { if (Math.random() < 0.7) ly = (TOP_MARGIN + height) / 2 + (Math.random() - 0.5) * 100; else ly = getRandomY(); }
+                let logBody = BODIES.rectangle(lx, ly, 40, 140, { isStatic: true, angle: (Math.random() - 0.5) * 0.5, render: { visible: false }, collisionFilter: { category: 0x0004 } });
+                COMPOSITE.add(world, logBody); logs.push(logBody);
+            }
+
+            // Bananas: Previous 10 + qty * 0.5 -> New: 8 + qty * 0.1 (Max ~28)
+            let bananaCount = 8 + Math.floor(qty * 0.1);
+            bananaCount = Math.min(bananaCount, 25);
+
+            for (let i = 0; i < bananaCount; i++) bananas.push({ x: START_LINE + 300 + Math.random() * (MAP_LENGTH - 800), y: getRandomY(), active: true });
+
+            // Jellyfish: Previous 5 + qty * 0.2 -> New: 5 + qty * 0.05 (Max ~15)
+            let jellyCount = 5 + Math.floor(qty * 0.05);
+            jellyCount = Math.min(jellyCount, 15);
+
+            for (let i = 0; i < jellyCount; i++) jellyfish.push({ x: START_LINE + 500 + Math.random() * (MAP_LENGTH - 1000), y: getRandomY(), active: true, offset: Math.random() * 10 });
+
+            // Whirlpools: Keep low
+            let whirlBase = isStormMode ? 3 : 1;
+            let whirlCount = Math.min(whirlBase + Math.floor(qty / 50), 5); // Max 5
+
+            for (let i = 0; i < whirlCount; i++) {
+                let wx = START_LINE + 500 + Math.random() * (MAP_LENGTH - 1000);
+                let wy;
+                if (mapType === 'TUNNEL') wy = (TOP_MARGIN + height) / 2 + (Math.random() - 0.5) * 100;
+                else wy = (i % 2 === 0) ? TOP_MARGIN + 60 : height - 60;
+                whirlpools.push({ x: wx, y: wy, radius: isStormMode ? 90 : 70 });
+            }
+
+            console.log(`Spawned: ${logCount} Logs, ${bananaCount} Bananas, ${jellyCount} Jellyfish, ${whirlCount} Whirlpools`);
+        }
+
+        // --- CORE LOOP ---
+        function loop() {
+            if (!isRacing && ducks.length === 0) {
+                ctx.fillStyle = isStormMode ? "#263238" : "#4fc3f7"; ctx.fillRect(0, 0, width, height);
+                drawEnvironment(0);
+                requestAnimationFrame(loop);
+                return;
+            }
+
+            // ❌ OPTIMIZATION: Disable Physics Engine Update
+            // ENGINE.update(engine, 1000 / 60);
+
+            waterOffset += isStormMode ? 2.5 : 0.8;
+            globalTimer += 0.05;
+            if (flashOpacity > 0) flashOpacity -= 0.02;
+
+            if (isRacing && raceLogic) {
+                let now = performance.now() / 1000; // seconds
+                let isFinished = raceLogic.update(now);
+
+                // Update Camera
+                // Find leading duck
+                let maxX = 0;
+                ducks.forEach(d => { if (d.x > maxX) maxX = d.x; });
+
+                let targetCam = maxX - width / 3;
+                targetCam = Math.max(0, Math.min(targetCam, FINISH_LINE - width + 500));
+                cameraX = targetCam;
+
+                // Update UI
+                let elapsedMS = (now - raceLogic.startTime) * 1000;
+                updateTimerUI(elapsedMS);
+                updateRankUI();
+
+                if (isFinished) finishGame();
+            }
+
+            // Render (Giữ nguyên)
+            ctx.clearRect(0, 0, width, height);
+            drawWater(cameraX);
+            ctx.save(); ctx.translate(-cameraX, 0);
+            drawEnvironment(cameraX);
+            drawLogs(); drawWhirlpools(); drawBananas(); drawJellyfish(); drawRocks(); drawDucks();
+            if (isStormMode) { drawWaves(); drawRain(cameraX); drawWindLines(); drawLightnings(); }
+            if (flashOpacity > 0) { ctx.fillStyle = `rgba(255, 255, 255, ${flashOpacity})`; ctx.fillRect(cameraX, 0, width, height); }
+            ctx.restore();
+
+            requestAnimationFrame(loop);
+        }
+
+        // --- HELPER FUNCTIONS ---
+        function startGame() {
+            console.log("Starting game...");
+            loadCurrentPrize(); // Reload to be safe
+            if (currentPrizeIndex === -1) { alert("Đã hết giải thưởng!"); return; }
+            if (prizes[currentPrizeIndex].quantity <= 0) { alert("Giải này đã hết!"); updatePrizeUI(); return; }
+
+            if (isRacing) return;
+            playSound('whistle');
+            COMPOSITE.clear(world); ENGINE.clear(engine);
+            ducks = []; rocks = []; waves = []; lightnings = []; windLines = [];
+            isStormMode = Math.random() < 0.3;
+
+            const uiLayer = document.getElementById('ui-layer');
+            const alertBox = document.getElementById('scenario-alert');
+            if (isStormMode) { uiLayer.style.background = "linear-gradient(to bottom, #263238, #37474f)"; alertBox.innerHTML = `⛈️ STORM MODE<span>Big Waves, Heavy Rain & Lightning!</span>`; alertBox.style.background = "rgba(38, 50, 56, 0.9)"; alertBox.style.border = "3px solid #ff5252"; }
+            else { uiLayer.style.background = "linear-gradient(to bottom, #0288d1, #01579b)"; alertBox.innerHTML = `☀️ SUNNY RACE<span>Watch out for Logs, Bananas & Jellyfish!</span>`; alertBox.style.background = "rgba(1, 87, 155, 0.9)"; alertBox.style.border = "3px solid #4fc3f7"; }
+            alertBox.style.transform = "translateX(-50%) scale(1)"; setTimeout(() => { alertBox.style.transform = "translateX(-50%) scale(0)"; }, 3000);
+
+            let qty = parseInt(document.getElementById('inp-qty').value);
+            console.log("Quantity:", qty);
+
+            // ✅ ADD: Lấy input time và chuyển thành duration (ms)
+            let timeSec = parseInt(document.getElementById('inp-time').value) || 30;
+            raceDuration = timeSec; // Keep in seconds for RaceLogic
+
+            // ✅ ADD: Random Winner (Deterministic)
+            winnerId = Math.floor(Math.random() * qty) + 1;
+            console.log("Winner: #" + winnerId);
+
+            let availableHeight = height - TOP_MARGIN - 100;
+            let laneHeight = availableHeight / qty;
+            console.log("Lane Height:", laneHeight);
+
+            // Pre-calculate ranks (simple shuffle for now, but ensure winner is rank 1)
+            let ranks = Array.from({ length: qty }, (_, i) => i + 1);
+            // Shuffle ranks
+            for (let i = ranks.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [ranks[i], ranks[j]] = [ranks[j], ranks[i]];
+            }
+
+            // Assign Rank 1 to winnerId
+            // Find who has rank 1 currently
+            let rank1Idx = ranks.indexOf(1);
+            // Find index of winnerId (which is winnerId - 1 since ducks are 1-based)
+            let winnerIdx = winnerId - 1;
+
+            // Swap ranks so winnerId gets Rank 1
+            if (rank1Idx !== -1) {
+                ranks[rank1Idx] = ranks[winnerIdx];
+                ranks[winnerIdx] = 1;
+            }
+
+            // Collision Categories
+            const CAT_DUCK = 0x0002;
+            const CAT_OBSTACLE = 0x0004;
+
+            for (let i = 0; i < qty; i++) {
+                let x = START_LINE;
+                let y = TOP_MARGIN + 50 + (i * laneHeight);
+
+                // Create body with collision filter to avoid duck-duck collisions
+                let body = BODIES.circle(x, y, 22, {
+                    isSensor: true,
+                    collisionFilter: {
+                        category: CAT_DUCK,
+                        mask: CAT_OBSTACLE // Only collide with obstacles
+                    }
+                });
+
+                ducks.push({
+                    id: i + 1,
+                    body: body,
+                    initY: y,
+                    rank: ranks[i],
+                    randomSeed: Math.floor(Math.random() * 10000),
+                    hat: HATS[Math.floor(Math.random() * HATS.length)],
+                    status: 'NORMAL',
+                    statusTimer: 0,
+                    visualAngle: 0,
+                    x: x,
+                    y: y
+                });
+                COMPOSITE.add(world, body);
+            }
+
+            // Initialize RaceLogic
+            raceLogic = new RaceLogic(raceDuration, TRACK_LENGTH, ducks);
+            raceLogic.start();
+
+            spawnStaticObstacles();
+            COMPOSITE.add(world, [BODIES.rectangle(MAP_LENGTH / 2, TOP_MARGIN - 50, MAP_LENGTH + 2000, 100, { isStatic: true }), BODIES.rectangle(MAP_LENGTH / 2, height + 50, MAP_LENGTH + 2000, 100, { isStatic: true })]);
+            isRacing = true; document.getElementById('winner-screen').style.display = 'none';
+            console.log("Game started successfully with " + ducks.length + " ducks.");
+        }
+
+        function finishGame() {
+            isRacing = false; playSound('win');
+            let winner = ducks.find(d => d.id === winnerId);
+            if (winner) {
+                document.getElementById('win-name').innerText = "Vịt #" + winner.id;
+                document.getElementById('winner-screen').style.display = 'flex';
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+                drawWinnerAvatar(winner);
+
+                // --- CẬP NHẬT KHO QUÀ ---
+                let prizeName = "Vô Địch";
+                let prizeItem = "";
+
+                if (currentPrizeIndex !== -1) {
+                    const p = prizes[currentPrizeIndex];
+                    prizeName = p.name;
+                    prizeItem = p.item;
+
+                    prizes[currentPrizeIndex].quantity--;
+                    localStorage.setItem('lucky_draw_prizes', JSON.stringify(prizes));
+                    updatePrizeUI();
+                }
+
+                // --- LƯU NGƯỜI THẮNG VÀO HỆ THỐNG ---
+                saveWinnerToSystem({
+                    name: "Vịt #" + winner.id,
+                    id: "", // Duck game không có ID nhân viên
+                    prize: prizeName,
+                    prizeItem: prizeItem,
+                    timestamp: Date.now(),
+                    gameType: "Đua Vịt"
+                });
+            }
+        }
+
+        function saveWinnerToSystem(winnerData) {
+            let winners = JSON.parse(localStorage.getItem('lucky_draw_winners') || '[]');
+            winners.push(winnerData);
+            localStorage.setItem('lucky_draw_winners', JSON.stringify(winners));
+            console.log("Saved winner:", winnerData);
+        }
+        function resetGame() { isRacing = false; ducks = []; rocks = []; bananas = []; logs = []; jellyfish = []; whirlpools = []; waves = []; lightnings = []; windLines = []; COMPOSITE.clear(world); document.getElementById('timer').innerText = "00:00.0"; document.getElementById('winner-screen').style.display = 'none'; document.getElementById('scenario-alert').style.transform = "translateX(-50%) scale(0)"; document.getElementById('rank-list').innerHTML = "---"; document.getElementById('ui-layer').style.background = "linear-gradient(to bottom, #0288d1, #01579b)"; cameraX = 0; requestAnimationFrame(() => { ctx.clearRect(0, 0, width, height); ctx.fillStyle = "#4fc3f7"; ctx.fillRect(0, 0, width, height); drawEnvironment(0); }); }
+
+        // ✅ MODIFIED: Update timer UI based on elapsed time
+        function updateTimerUI(elapsed) {
+            let ms = Math.floor((elapsed % 1000) / 100);
+            let s = Math.floor((elapsed / 1000) % 60);
+            let m = Math.floor(elapsed / 60000);
+            document.getElementById('timer').innerText = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s) + "." + ms;
+        }
+
+        function updateRankUI() { let sorted = [...ducks].sort((a, b) => b.x - a.x); let html = ""; for (let i = 0; i < Math.min(5, sorted.length); i++) { html += `<div class="r-item"><span class="${i === 0 ? 'r-1' : ''}">#${sorted[i].id}</span></div>`; } document.getElementById('rank-list').innerHTML = html; }
+
+        // ✅ ADD: Draw Winner Avatar
+        function drawWinnerAvatar(duck) {
+            const c = document.getElementById('win-canvas');
+            const cx = c.getContext('2d');
+            cx.clearRect(0, 0, c.width, c.height);
+
+            cx.save();
+            cx.translate(c.width / 2, c.height / 2);
+            cx.scale(3, 3); // Scale up 3x
+
+            // Draw Duck (Simplified version of drawDucks)
+            cx.shadowColor = "rgba(0,0,0,0.2)"; cx.shadowBlur = 4; cx.shadowOffsetY = 2;
+            cx.fillStyle = "#ffeb3b";
+            cx.beginPath(); cx.ellipse(0, 5, 22, 14, 0, 0, Math.PI * 2); cx.arc(10, -10, 15, 0, Math.PI * 2); cx.moveTo(-10, 0); cx.lineTo(-30, -8); cx.lineTo(-20, 8); cx.fill();
+            cx.shadowBlur = 0; cx.shadowOffsetY = 0; cx.lineWidth = 1.5; cx.strokeStyle = "#f57f17"; cx.stroke();
+            cx.fillStyle = "#fbc02d";
+            cx.beginPath(); cx.ellipse(-5, 5, 12, 7, 0.2, 0, Math.PI * 2); cx.fill(); cx.stroke();
+            cx.fillStyle = "#ff6f00"; cx.beginPath(); cx.moveTo(22, -8); cx.quadraticCurveTo(35, -12, 35, -5); cx.quadraticCurveTo(30, -2, 22, -5); cx.fill(); cx.stroke();
+            cx.fillStyle = "white"; cx.beginPath(); cx.arc(14, -12, 5, 0, Math.PI * 2); cx.fill();
+            cx.fillStyle = "black"; cx.beginPath(); cx.arc(15, -12, 2, 0, Math.PI * 2); cx.fill();
+            if (duck.hat) { cx.fillStyle = duck.hat; cx.lineWidth = 1; cx.strokeStyle = "black"; cx.beginPath(); cx.rect(6, -30, 10, 8); cx.rect(2, -22, 18, 4); cx.fill(); cx.stroke(); }
+            cx.fillStyle = "white"; cx.fillRect(-18, 2, 20, 16); cx.strokeRect(-18, 2, 20, 16);
+            cx.fillStyle = "black"; cx.font = "bold 11px Arial"; cx.textAlign = "center"; cx.textBaseline = "middle"; cx.fillText(duck.id, -8, 10);
+
+            cx.restore();
+        }
+
+        // --- DRAW FUNCTIONS (Giữ nguyên) ---
+        function spawnRock(targetDuck) { let dropX = targetDuck.x + 200 + Math.random() * 150; let rockBody = BODIES.rectangle(dropX, -100, 35, 35, { restitution: 0.2, friction: 0.1, frictionAir: 0.05, label: 'rock', isSensor: true }); BODY.setVelocity(rockBody, { x: 0, y: 12 }); COMPOSITE.add(world, rockBody); rocks.push(rockBody); }
+        function spawnWave() { waves.push({ x: cameraX + width + 100, width: 150 + Math.random() * 100, speed: 12 + Math.random() * 5 }); }
+        function triggerLightning() { let visibleDucks = ducks.filter(d => d.x > cameraX && d.x < cameraX + width); if (visibleDucks.length > 0) { let target = visibleDucks[Math.floor(Math.random() * visibleDucks.length)]; let path = []; let currX = target.x + (Math.random() - 0.5) * 150; let currY = TOP_MARGIN - 50; let targetY = target.y; path.push({ x: currX, y: currY }); while (currY < targetY) { currY += Math.random() * 30 + 10; currX += (Math.random() - 0.5) * 60; path.push({ x: currX, y: currY }); } path.push({ x: target.x, y: target.y }); lightnings.push({ path: path, life: 60, maxLife: 60 }); target.status = 'ZAPPED'; target.statusTimer = 180; playSound('thunder'); flashOpacity = 0.6; } }
+        function drawWater(camX) { ctx.fillStyle = isStormMode ? "#37474f" : "#4fc3f7"; ctx.fillRect(0, 0, width, height); ctx.fillStyle = "rgba(255,255,255,0.15)"; for (let y = TOP_MARGIN + 20; y < height; y += 80) { let wx = (camX * 0.4 * (y / height) - waterOffset) % 200; for (let x = -200; x < width + 200; x += 150) { ctx.beginPath(); ctx.arc(x - wx, y, 8, 0, Math.PI * 2); ctx.fill(); } } }
+        function drawEnvironment(camX) { ctx.fillStyle = isStormMode ? "#33691e" : "#689f38"; ctx.fillRect(camX, TOP_MARGIN - 50, width, 50); ctx.fillStyle = "#5d4037"; for (let x = Math.floor(camX / 40) * 40; x < camX + width + 40; x += 40) { ctx.beginPath(); ctx.arc(x, TOP_MARGIN, 15, 0, Math.PI); ctx.fill(); } for (let y = TOP_MARGIN; y < height; y += 20) { ctx.fillStyle = ((y / 20) % 2 === 0) ? "black" : "white"; ctx.fillRect(START_LINE, y, 20, 20); ctx.fillStyle = ((y / 20) % 2 === 0) ? "white" : "black"; ctx.fillRect(START_LINE + 20, y, 20, 20); } for (let y = TOP_MARGIN; y < height; y += 40) { ctx.fillStyle = ((y / 40) % 2 === 0) ? "black" : "white"; ctx.fillRect(FINISH_LINE, y, 40, 40); ctx.fillStyle = ((y / 40) % 2 === 0) ? "white" : "black"; ctx.fillRect(FINISH_LINE + 40, y, 40, 40); } ctx.fillStyle = "#c62828"; ctx.fillRect(FINISH_LINE - 10, TOP_MARGIN - 20, 10, height - TOP_MARGIN); }
+        function drawWaves() { ctx.strokeStyle = "rgba(255, 255, 255, 0.4)"; ctx.lineWidth = 15; waves.forEach(w => { ctx.beginPath(); ctx.moveTo(w.x, TOP_MARGIN); ctx.quadraticCurveTo(w.x - 50, height / 2, w.x, height); ctx.stroke(); }); }
+        function drawRain(camX) { ctx.strokeStyle = "rgba(200, 200, 255, 0.3)"; ctx.lineWidth = 2; ctx.beginPath(); let startRainX = Math.floor(camX / 100) * 100; for (let i = 0; i < 50; i++) { let rx = startRainX + Math.random() * width; let ry = TOP_MARGIN + Math.random() * (height - TOP_MARGIN); ctx.moveTo(rx, ry); ctx.lineTo(rx - 20, ry + 30); } ctx.stroke(); }
+        function drawWindLines() { ctx.strokeStyle = "rgba(255, 255, 255, 0.2)"; ctx.lineWidth = 3; windLines.forEach(w => { ctx.beginPath(); ctx.moveTo(w.x, w.y); ctx.lineTo(w.x - w.len, w.y); ctx.stroke(); }); }
+        function drawLightnings() { ctx.strokeStyle = "#fff176"; ctx.lineWidth = 6; ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.shadowColor = "#ffff00"; ctx.shadowBlur = 30; for (let i = lightnings.length - 1; i >= 0; i--) { let l = lightnings[i]; if (l.life > 0) { ctx.globalAlpha = l.life / l.maxLife; ctx.beginPath(); let path = l.path; if (path.length > 0) { ctx.moveTo(path[0].x, path[0].y); for (let p of path) ctx.lineTo(p.x, p.y); } ctx.stroke(); l.life--; } else { lightnings.splice(i, 1); } } ctx.globalAlpha = 1.0; ctx.shadowBlur = 0; ctx.lineWidth = 1; }
+        function drawLogs() { ctx.fillStyle = "#795548"; ctx.strokeStyle = "#3e2723"; ctx.lineWidth = 2; logs.forEach(l => { ctx.save(); ctx.translate(l.position.x, l.position.y); ctx.rotate(l.angle); ctx.beginPath(); ctx.roundRect(-20, -70, 40, 140, 10); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-10, -50); ctx.lineTo(-10, 50); ctx.stroke(); ctx.restore(); }); }
+        function drawJellyfish() { jellyfish.forEach(j => { if (!j.active) return; let bob = Math.sin(globalTimer * 3 + j.offset) * 5; ctx.save(); ctx.translate(j.x, j.y + bob); ctx.fillStyle = "rgba(224, 64, 251, 0.7)"; ctx.beginPath(); ctx.arc(0, 0, 15, Math.PI, 0); ctx.fill(); ctx.strokeStyle = "rgba(224, 64, 251, 0.5)"; ctx.lineWidth = 2; for (let k = -10; k <= 10; k += 5) { ctx.beginPath(); ctx.moveTo(k, 0); ctx.quadraticCurveTo(k, 15, k + Math.sin(globalTimer * 10) * 5, 25); ctx.stroke(); } ctx.restore(); }); }
+        function drawWhirlpools() { whirlpools.forEach(w => { ctx.save(); ctx.translate(w.x, w.y); ctx.rotate(globalTimer * 2); for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(0, 0, w.radius - (i * 15), i, Math.PI * 2 + i - 0.5); ctx.strokeStyle = `rgba(179, 229, 252, ${0.8 - i * 0.2})`; ctx.lineWidth = 5; ctx.stroke(); } ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fillStyle = "#01579b"; ctx.fill(); ctx.restore(); }); }
+        function drawBananas() { ctx.font = "24px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; bananas.forEach(b => { if (b.active) ctx.fillText("🍌", b.x, b.y); }); }
+        function drawRocks() { ctx.font = "30px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; rocks.forEach(r => { ctx.save(); ctx.translate(r.position.x, r.position.y); ctx.rotate(r.angle); ctx.fillText("🪨", 0, 0); ctx.restore(); }); }
+        function drawDucks() {
+            ducks.forEach(d => {
+                let x = d.x, y = d.y;
+                let angle = (d.status === 'SLIPPING' || d.status === 'SPINNING' || d.status === 'SHOCKED') ? d.visualAngle : 0;
+                if (d.status === 'HIT_LOG') angle = -0.5;
+
+                ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
+                if (d.status === 'SLIPPING') { ctx.font = "20px Arial"; ctx.fillText("💫", 0, -35); }
+                if (d.status === 'SPINNING') { ctx.font = "20px Arial"; ctx.fillText("😵", 0, -35); }
+                if (d.status === 'SHOCKED') { ctx.font = "20px Arial"; ctx.fillText("⚡", 0, -35); }
+                if (d.status === 'ZAPPED') { ctx.font = "20px Arial"; ctx.fillText("🔥", 0, -35); }
+                if (d.status === 'HIT_LOG') { ctx.font = "20px Arial"; ctx.fillText("💢", 0, -35); }
+
+                ctx.shadowColor = "rgba(0,0,0,0.2)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
+                ctx.fillStyle = (d.status === 'ZAPPED') ? "#212121" : "#ffeb3b";
+                if (d.status === 'SHOCKED') ctx.fillStyle = "#fff59d";
+                ctx.beginPath(); ctx.ellipse(0, 5, 22, 14, 0, 0, Math.PI * 2); ctx.arc(10, -10, 15, 0, Math.PI * 2); ctx.moveTo(-10, 0); ctx.lineTo(-30, -8); ctx.lineTo(-20, 8); ctx.fill();
+                ctx.shadowBlur = 0; ctx.shadowOffsetY = 0; ctx.lineWidth = 1.5; ctx.strokeStyle = "#f57f17"; ctx.stroke();
+                ctx.fillStyle = (d.status === 'ZAPPED') ? "#424242" : "#fbc02d";
+                ctx.beginPath(); ctx.ellipse(-5, 5, 12, 7, 0.2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = "#ff6f00"; ctx.beginPath(); ctx.moveTo(22, -8); ctx.quadraticCurveTo(35, -12, 35, -5); ctx.quadraticCurveTo(30, -2, 22, -5); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(14, -12, 5, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(15, -12, 2, 0, Math.PI * 2); ctx.fill();
+                if (d.hat) { ctx.fillStyle = d.hat; ctx.lineWidth = 1; ctx.strokeStyle = "black"; ctx.beginPath(); ctx.rect(6, -30, 10, 8); ctx.rect(2, -22, 18, 4); ctx.fill(); ctx.stroke(); }
+                ctx.fillStyle = "white"; ctx.fillRect(-18, 2, 20, 16); ctx.strokeRect(-18, 2, 20, 16);
+                ctx.fillStyle = "black"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(d.id, -8, 10);
+                ctx.restore();
+            });
+        }
+        requestAnimationFrame(loop);
+    </script>
+</body>
+
+</html>

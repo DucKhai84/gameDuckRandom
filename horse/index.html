@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Survival Derby - Wide Track</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;900&family=Roboto+Condensed:wght@700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #4CAF50;
+            font-family: 'Roboto', sans-serif;
+            user-select: none;
+        }
+
+
+
+        /* --- UI THÔNG BÁO --- */
+        #sinkhole-alert {
+            position: fixed;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(255, 0, 0, 0.9);
+            color: yellow;
+            padding: 20px 40px;
+            font-size: 24px;
+            font-weight: 900;
+            text-transform: uppercase;
+            border: 5px solid yellow;
+            border-radius: 10px;
+            z-index: 150;
+            box-shadow: 0 0 30px red;
+            text-align: center;
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+        }
+
+        #sinkhole-alert.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        #ui-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label {
+            color: #aaa;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            text-align: center;
+            font-weight: 900;
+            border-radius: 6px;
+            border: 2px solid #555;
+            background: #222;
+            color: white;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: #ff9800;
+            outline: none;
+        }
+
+        #timer {
+            background: #111;
+            color: #ffeb3b;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 5px 15px;
+            min-width: 120px;
+            text-align: center;
+            border: 1px solid #444;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+            text-shadow: 0 0 5px #ffeb3b;
+        }
+
+        button {
+            padding: 10px 25px;
+            font-weight: 900;
+            font-size: 14px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            color: white;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        #btn-start {
+            background: linear-gradient(135deg, #FF6F00, #FFca28);
+        }
+
+        #btn-reset {
+            background: linear-gradient(135deg, #d32f2f, #ef5350);
+        }
+
+        button:disabled {
+            background: #555 !important;
+            cursor: not-allowed;
+            opacity: 0.5;
+            box-shadow: none;
+        }
+
+        #loading-status {
+            font-weight: bold;
+            color: #fff;
+            background: #0277BD;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        #rank-board {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            width: 180px;
+            background: rgba(20, 20, 20, 0.85);
+            color: white;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 13px;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 50;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .rank-title {
+            text-align: center;
+            font-weight: 900;
+            border-bottom: 2px solid #444;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            color: #aaa;
+            letter-spacing: 1px;
+        }
+
+        .r-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 8px 0;
+            align-items: center;
+        }
+
+        .r-badge {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        #winner-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .win-box {
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            padding: 40px 60px;
+            border-radius: 30px;
+            text-align: center;
+            border: 8px solid #FFD700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.6), inset 0 0 20px rgba(255, 255, 255, 1);
+            transform: scale(0.8);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .win-box::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.8), transparent);
+            transform: skewX(-25deg);
+            animation: shine 3s infinite;
+        }
+
+        .trophy-icon {
+            font-size: 60px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.3));
+        }
+
+        .win-title {
+            margin: 0;
+            color: #555;
+            font-size: 18px;
+            letter-spacing: 2px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .win-name {
+            font-size: 50px;
+            margin: 15px 0;
+            font-weight: 900;
+            text-transform: uppercase;
+            -webkit-text-stroke: 2px #fff;
+            text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .win-img-container {
+            width: 180px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(0, 0, 0, 0.1) 0%, transparent 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        #btn-replay {
+            background: linear-gradient(90deg, #FF9800, #FF5722);
+            padding: 15px 40px;
+            font-size: 18px;
+            box-shadow: 0 10px 20px rgba(255, 87, 34, 0.4);
+            animation: pulse 1.5s infinite;
+        }
+
+        #horse-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .horse-wrapper {
+            position: absolute;
+            width: 120px;
+            height: 100px;
+            will-change: transform;
+            transition: z-index 0.1s;
+        }
+
+        .horse-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s, filter 0.3s;
+            filter: drop-shadow(0 10px 5px rgba(0, 0, 0, 0.3));
+        }
+
+        .saddle-number {
+            position: absolute;
+            top: 52%;
+            left: 42%;
+            transform: translate(-50%, -50%) rotate(-5deg) skewX(-5deg);
+            background: linear-gradient(to bottom, #ffffff, #f0f0f0);
+            color: #222;
+            width: 20px;
+            height: 16px;
+            border-radius: 3px;
+            border: 1px dashed #666;
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3), inset 0 0 1px rgba(0, 0, 0, 0.1);
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .chat-bubble {
+            position: absolute;
+            top: -40px;
+            left: 20px;
+            background: white;
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 20;
+            animation: popUp 1.5s forwards;
+        }
+
+        .chat-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 10px;
+            border-width: 5px 5px 0;
+            border-style: solid;
+            border-color: white transparent;
+        }
+
+        @keyframes shine {
+            0% {
+                left: -100%;
+            }
+
+            20% {
+                left: 200%;
+            }
+
+            100% {
+                left: 200%;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes popUp {
+            0% {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+
+            10% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            80% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sinkhole-alert">⚠️ CẢNH BÁO!<br>HỐ TỬ THẦN!</div>
+
+    <div id="ui-layer">
+        <a href="../index.html" style="text-decoration: none;">
+            <button id="btn-back"
+                style="background: linear-gradient(90deg, #FFD700, #FDB931); color: #b71c1c; border: 2px solid #fff; margin-right: 15px;">⬅
+                MENU</button>
+        </a>
+
+        <!-- PRIZE INFO -->
+        <div id="prize-info" style="
+            background: rgba(0,0,0,0.5); 
+            color: #FFD700; 
+            padding: 5px 15px; 
+            border-radius: 10px; 
+            border: 1px solid #FFD700;
+            text-align: center;
+            margin-right: 15px;
+        ">
+            <div id="prize-name" style="font-size: 14px; font-weight: bold; text-transform: uppercase;">ĐANG TẢI...
+            </div>
+            <div id="prize-count" style="font-size: 12px; color: #fff;">---</div>
+        </div>
+
+        <div id="loading-status">⏳ Đang tải GIF...</div>
+        <div class="input-group"><label>Số Ngựa</label><input type="number" id="inp-qty" value="8" min="2" max="15">
+        </div>
+        <div class="input-group"><label>Giây</label>
+            <input type="number" id="inp-time" value="30" min="10" max="600">
+        </div>
+        <div id="timer">00:00.0</div>
+        <button id="btn-start" onclick="startGame()" disabled>🏁 BẮT ĐẦU</button>
+        <button id="btn-reset" onclick="resetGame()">🔄 RESET</button>
+    </div>
+
+    <div id="rank-board">
+        <div class="rank-title">BẢNG XẾP HẠNG</div>
+        <div id="rank-list">---</div>
+    </div>
+
+    <div id="winner-screen">
+        <div class="win-box">
+            <div class="trophy-icon">🏆</div>
+            <h2 class="win-title">NHÀ VÔ ĐỊCH</h2>
+            <div class="win-img-container">
+                <img id="win-img" src="" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <h1 id="win-name" class="win-name">#1</h1>
+            <button id="btn-replay" onclick="resetGame()">Đua Ván Mới</button>
+        </div>
+    </div>
+
+    <div id="horse-layer"></div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script>
+        const HORSE_GIF_FILE = 'horse.gif';
+
+        let gifImage = new Image();
+        function preloadGif() {
+            gifImage.src = HORSE_GIF_FILE;
+            gifImage.onload = () => {
+                document.getElementById('loading-status').innerText = "✅ Sẵn Sàng!";
+                document.getElementById('loading-status').style.background = "#4caf50";
+                document.getElementById('btn-start').disabled = false;
+            };
+            gifImage.onerror = () => { alert(`Lỗi: Không tìm thấy file "${HORSE_GIF_FILE}"!`); };
+        }
+        preloadGif();
+
+        const FUNNY_MESSAGES = {
+            FENCE: ["Ui da!", "Đau cái đầu!", "Cụng đầu!", "U đầu!", "Mẻ trán!", "Ai chắn đường?", "Ối giời ơi!"],
+            MUD: ["Dính phốt!", "Bẩn quá!", "Lầy quá!", "Huhu!", "Mắc kẹt!", "Nặng mông!", "Ai đổ bùn vậy?"],
+            SPIKE: ["Thủng chân!", "Á đau quá!", "Chảy máu rồi!", "Gai nhọn!", "Thủng lốp!", "Ối á!", "Nhảy lò cò!"],
+            HOLE: ["Cứu bé với!", "Rớt hố rồi!", "Bye bye!", "Lọt hố!", "Aaaaaaa!", "Toang rồi!", "Ét ô ét!"],
+            NITRO: ["Xé gió!", "Vụt bay!", "Tăng tốc!", "Quá nhanh!", "Bám đuôi nhé!"]
+        };
+
+        function getRandomMessage(type) {
+            let list = FUNNY_MESSAGES[type] || ["Á đù!"];
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'gallop') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(120, now); osc.frequency.exponentialRampToValueAtTime(60, now + 0.1);
+                gain.gain.setValueAtTime(0.02, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'win') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(523.25, now);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 1.5);
+                osc.start(now); osc.stop(now + 1.5);
+            } else if (type === 'alert') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.linearRampToValueAtTime(400, now + 0.5);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            } else if (type === 'crash') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(50, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'fall') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.8);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0, now + 0.8);
+                osc.start(now); osc.stop(now + 0.8);
+            }
+        }
+
+        const ENGINE = Matter.Engine, BODIES = Matter.Bodies, COMPOSITE = Matter.Composite, BODY = Matter.Body;
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const horseLayer = document.getElementById('horse-layer');
+
+        let width = window.innerWidth, height = window.innerHeight;
+        canvas.width = width; canvas.height = height;
+        window.addEventListener('resize', () => {
+            width = window.innerWidth; height = window.innerHeight;
+            canvas.width = width; canvas.height = height;
+        });
+
+        const START_LINE = 200;
+        let FINISH_LINE = 999999;
+        let isFinishLineSpawned = false;
+        let targetGameTime = 0;
+
+        // [MOD] MỞ RỘNG ĐƯỜNG ĐUA: Giảm lề trên dưới
+        const TOP_MARGIN = 60; // Trước là 80
+        const BOTTOM_MARGIN = 20; // Trước là 40
+
+        const CONSTANT_SPEED = 1.2;
+
+        const engine = ENGINE.create(); engine.gravity.y = 0;
+        const world = engine.world;
+
+        // PRIZE SYSTEM
+        let prizes = [];
+        let currentPrizeIndex = -1;
+
+        let horses = [];
+        let particles = [];
+        let obstacles = [];
+        let postFinishTrees = [];
+
+        // --- LOAD PRIZE ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadCurrentPrize();
+        });
+
+        function loadCurrentPrize() {
+            const storedPrizes = localStorage.getItem('lucky_draw_prizes');
+            if (storedPrizes) {
+                prizes = JSON.parse(storedPrizes);
+                currentPrizeIndex = prizes.findIndex(p => p.quantity > 0);
+                updatePrizeUI();
+            }
+        }
+
+        function updatePrizeUI() {
+            const nameEl = document.getElementById('prize-name');
+            const countEl = document.getElementById('prize-count');
+            const startBtn = document.getElementById('btn-start');
+
+            if (currentPrizeIndex !== -1) {
+                const p = prizes[currentPrizeIndex];
+                nameEl.innerText = p.name;
+                countEl.innerText = `Còn lại: ${p.quantity}`;
+                if (gifImage.complete) startBtn.disabled = false;
+            } else {
+                nameEl.innerText = "HẾT QUÀ";
+                countEl.innerText = "Vui lòng nạp thêm";
+                startBtn.disabled = true;
+            }
+        }
+
+        let isRacing = false;
+        let startTime = 0;
+        let cameraX = 0;
+        let globalFrame = 0;
+
+        let sinkholeTimer = 0;
+        let nextSinkholeTime = 0;
+        let sinkholeCount = 0;
+        let maxSinkholes = 3;
+
+        const JOCKEY_COLORS = ['#f44336', '#e91e63', '#9c27b0', '#2196f3', '#009688', '#ffeb3b', '#ff5722'];
+
+        const HORSE_FILTERS = [
+            'none', 'hue-rotate(45deg) saturate(1.5)', 'hue-rotate(90deg) saturate(1.5)',
+            'hue-rotate(135deg) saturate(1.5)', 'hue-rotate(180deg) saturate(1.5)',
+            'hue-rotate(225deg) saturate(1.5)', 'hue-rotate(270deg) saturate(1.5)',
+            'hue-rotate(315deg) saturate(1.5)', 'grayscale(100%)', 'invert(100%)', 'sepia(100%) saturate(2)'
+        ];
+
+        const OBS_TYPES = {
+            MUD: { type: 'zone', shape: 'circle', color: 'rgba(93, 64, 55, 0.9)', radius: 55, speedMod: 0.3, name: 'Vũng Bùn' },
+            SPIKE: { type: 'item', shape: 'circle', radius: 25, stunTime: 120, name: 'Bẫy Gai' },
+            HOLE: { type: 'trap', shape: 'circle', color: '#000000', radius: 45, name: 'Hố Tử Thần' },
+            // [MOD] NITRO RỘNG & DÀI HƠN NỮA: 300x120
+            NITRO_PAD: { type: 'boost', shape: 'rect', width: 300, height: 120, name: 'Tăng Tốc' }
+        };
+
+        function loop() {
+            requestAnimationFrame(loop);
+            if (!isRacing && horses.length === 0) { drawBackground(0); return; }
+
+            ENGINE.update(engine, 1000 / 60);
+            if (Math.random() < 1.0) globalFrame++;
+
+            let activeHorses = horses.filter(h => !h.isEliminated);
+            let leaderX = 0;
+            if (activeHorses.length > 0) leaderX = Math.max(...activeHorses.map(d => d.body.position.x));
+            else if (horses.length > 0) leaderX = Math.max(...horses.map(d => d.body.position.x));
+
+            let shakeX = 0, shakeY = 0;
+
+            let targetCam = leaderX - width / 3;
+            targetCam = Math.max(0, targetCam);
+            cameraX += (targetCam - cameraX) * 0.05;
+
+            let renderCamX = cameraX + shakeX;
+            let renderCamY = shakeY;
+
+            if (isRacing) {
+                let elapsedSeconds = (Date.now() - startTime) / 1000;
+
+                if (!isFinishLineSpawned && elapsedSeconds >= targetGameTime) {
+                    isFinishLineSpawned = true;
+                    FINISH_LINE = (cameraX + width) + 300;
+
+                    postFinishTrees = [];
+                    let startTreeX = FINISH_LINE + 50;
+                    for (let i = 0; i < 50; i++) {
+                        postFinishTrees.push({
+                            x: startTreeX + Math.random() * 2000,
+                            y: Math.random() * height,
+                            radius: 20 + Math.random() * 30,
+                            color: `hsl(${100 + Math.random() * 40}, 60%, ${30 + Math.random() * 20}%)`
+                        });
+                    }
+                    postFinishTrees.sort((a, b) => a.y - b.y);
+                }
+
+                if (sinkholeCount < maxSinkholes) {
+                    sinkholeTimer++;
+                    if (sinkholeTimer >= nextSinkholeTime) {
+                        if (!isFinishLineSpawned || leaderX < FINISH_LINE - 500) {
+                            spawnRandomSinkhole(leaderX);
+                            sinkholeCount++;
+                            sinkholeTimer = 0;
+                        }
+                    }
+                }
+
+                let idealX = START_LINE + (CONSTANT_SPEED * globalFrame);
+
+                horses.forEach(h => {
+                    if (h.isEliminated) {
+                        if (h.fallScale > 0) {
+                            h.fallScale -= 0.05;
+                            h.opacity -= 0.05;
+                            h.domElement.style.transform = `translate3d(${h.body.position.x - renderCamX - 60}px, ${h.body.position.y + renderCamY - 50}px, 0) scale(${Math.max(0, h.fallScale)})`;
+                            h.domElement.style.opacity = Math.max(0, h.opacity);
+                        }
+                        return;
+                    }
+
+                    if (leaderX - h.body.position.x > 400 && h.cooldownTimer <= 0 && h.powerupTimer <= 0 && h.stunTimer <= 0) {
+                        h.powerupTimer = 120; h.cooldownTimer = 300;
+                        showComment(h, "Tăng tốc!");
+                    }
+                    if (h.powerupTimer > 0) h.powerupTimer--;
+                    if (h.cooldownTimer > 0) h.cooldownTimer--;
+
+                    if (h.stunTimer > 0) {
+                        h.stunTimer--;
+                        if (h.hitType === 'SPIKE') h.domElement.querySelector('img').style.transform = `translateY(${Math.sin(h.stunTimer) * 5}px)`;
+                        BODY.setPosition(h.body, { x: h.body.position.x, y: h.body.position.y });
+                        if (h.stunTimer <= 0) { h.domElement.querySelector('img').style.transform = 'translateY(0)'; h.hitType = null; }
+                        return;
+                    }
+
+                    if (!isFinishLineSpawned || h.body.position.x < FINISH_LINE + 100) {
+                        let currentZoneMod = 1.0;
+                        for (let i = obstacles.length - 1; i >= 0; i--) {
+                            let obs = obstacles[i]; let collision = false;
+
+                            if (Math.abs(obs.x - h.body.position.x) > 250) continue;
+
+                            if (obs.config.shape === 'rect') {
+                                let hw = obs.config.width / 2; let hh = obs.config.height / 2;
+                                let dX = h.body.position.x - Math.max(obs.x - hw, Math.min(h.body.position.x, obs.x + hw));
+                                let dY = h.body.position.y - Math.max(obs.y - hh, Math.min(h.body.position.y, obs.y + hh));
+                                if ((dX * dX + dY * dY) < 225) collision = true;
+                            } else {
+                                let checkRadius = obs.config.radius;
+                                let dx = h.body.position.x - obs.x; let dy = h.body.position.y - obs.y;
+                                if ((dx * dx + dy * dy) < Math.pow(checkRadius + 15, 2)) collision = true;
+                            }
+
+                            if (collision) {
+                                if (obs.config.type === 'trap') {
+                                    h.isEliminated = true;
+                                    playSound('fall');
+                                    showComment(h, getRandomMessage('HOLE'));
+                                    updateRank();
+                                }
+                                else if (obs.config.type === 'zone') {
+                                    if (h.powerupTimer <= 0) {
+                                        currentZoneMod = Math.min(currentZoneMod, obs.config.speedMod);
+                                        if (Math.random() < 0.03) showComment(h, getRandomMessage('MUD'));
+                                    }
+                                }
+                                else if (obs.config.type === 'boost') {
+                                    h.powerupTimer = 120;
+                                    showComment(h, getRandomMessage('NITRO'));
+                                }
+                                else if (obs.config.type === 'item') {
+                                    if (h.powerupTimer > 0) { obstacles.splice(i, 1); }
+                                    else {
+                                        h.stunTimer = obs.config.stunTime; h.hitType = obs.typeKey;
+                                        playSound('crash');
+                                        showComment(h, getRandomMessage(obs.typeKey));
+                                        obstacles.splice(i, 1);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (h.isEliminated) return;
+
+                        let distToIdeal = idealX - h.body.position.x;
+                        let catchUpFactor = 1.0 + (distToIdeal / 2000);
+                        catchUpFactor = Math.max(0.8, Math.min(catchUpFactor, 1.15));
+
+                        if (Math.random() < 0.1) h.targetSpeedMultiplier = 0.9 + Math.random() * 0.2;
+
+                        h.currentSpeedMultiplier += (h.targetSpeedMultiplier - h.currentSpeedMultiplier) * 0.02;
+
+                        let targetNitro = (h.powerupTimer > 0) ? 2.5 : 1.0;
+                        h.currentNitro += (targetNitro - h.currentNitro) * 0.05;
+
+                        let finalSpeed = (CONSTANT_SPEED * h.currentSpeedMultiplier * currentZoneMod * catchUpFactor * h.currentNitro);
+
+                        if (Math.random() < 0.01) h.targetY = h.originY + (Math.random() - 0.5) * 120;
+                        let trackMinY = TOP_MARGIN + 30;
+                        let trackMaxY = height - BOTTOM_MARGIN - 30;
+                        h.targetY = Math.max(trackMinY, Math.min(h.targetY, trackMaxY));
+
+                        let newY = h.body.position.y + (h.targetY - h.body.position.y) * 0.02;
+
+                        if (Math.random() < 0.1 && currentZoneMod === 1.0) particles.push({ x: h.body.position.x - 20, y: newY + 35, vx: -2, vy: -1, life: 20, color: 'rgba(50,100,50,0.5)' });
+
+                        BODY.setPosition(h.body, { x: h.body.position.x + finalSpeed, y: newY });
+                        if (Math.random() < 0.02) playSound('gallop');
+                    }
+                });
+                updateTimer();
+                updateRank();
+            }
+
+            ctx.clearRect(0, 0, width, height);
+            ctx.save(); ctx.translate(0, renderCamY); drawBackground(renderCamX); ctx.restore();
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i]; p.life--; p.x += p.vx; p.y += p.vy;
+                ctx.fillStyle = p.color || "rgba(100,80,60,0.5)"; ctx.beginPath(); ctx.arc(p.x - renderCamX, p.y, p.life / 4, 0, Math.PI * 2); ctx.fill();
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            horses.forEach(h => {
+                if (!h.isEliminated) {
+                    let screenX = h.body.position.x - renderCamX;
+                    let screenY = h.body.position.y + renderCamY;
+                    h.domElement.style.transform = `translate3d(${screenX - 60}px, ${screenY - 50}px, 0)`;
+                    if (h.stunTimer > 0 && h.hitType === 'FENCE') h.domElement.style.transform += ` translateX(${(Math.random() - 0.5) * 5}px)`;
+                    else if (h.stunTimer > 0 && h.hitType === 'SPIKE') h.domElement.style.transform += ` translateY(${(Math.random() - 0.5) * 3}px)`;
+                    h.domElement.style.zIndex = Math.floor(screenY);
+                }
+            });
+
+            if (isRacing && isFinishLineSpawned && leaderX >= FINISH_LINE) {
+                let winner = horses.find(h => h.body.position.x >= FINISH_LINE && !h.isEliminated);
+                if (winner) endGame(winner);
+            }
+        }
+
+        function spawnRandomSinkhole(leaderX) {
+            let alertBox = document.getElementById('sinkhole-alert');
+            alertBox.classList.add('show');
+            playSound('alert');
+
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 2000);
+
+            let spawnX = leaderX + width + Math.random() * 300;
+
+            let safeYMin = TOP_MARGIN + 50;
+            let safeYMax = height - BOTTOM_MARGIN - 50;
+            let spawnY = safeYMin + Math.random() * (safeYMax - safeYMin);
+
+            let obs = {
+                x: spawnX,
+                y: spawnY,
+                config: OBS_TYPES.HOLE,
+                typeKey: 'HOLE',
+                rotation: 0
+            };
+
+            obstacles.push(obs);
+        }
+
+        function drawBackground(camX) {
+            let trackY = TOP_MARGIN;
+            let trackH = height - TOP_MARGIN - BOTTOM_MARGIN;
+
+            let drawEndX = isFinishLineSpawned ? (FINISH_LINE - camX) : width;
+            let visibleWidth = Math.min(width, Math.max(0, drawEndX));
+
+            ctx.fillStyle = "#4CAF50";
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.fillStyle = "#795548";
+            ctx.fillRect(0, trackY, visibleWidth, trackH);
+
+            ctx.fillStyle = "rgba(0,0,0,0.1)";
+            let density = 10;
+            let startCol = Math.floor(camX / density);
+            let endCol = startCol + (visibleWidth / density) + 2;
+            for (let i = startCol; i < endCol; i++) {
+                for (let j = 0; j < trackH / density; j++) {
+                    let seed = Math.sin(i * 12.9898 + j * 78.233) * 43758.5453;
+                    let rand = seed - Math.floor(seed);
+                    let drawX = (i * density) - camX;
+                    let drawY = trackY + (j * density);
+                    if (drawX < visibleWidth && rand > 0.7) ctx.fillRect(drawX, drawY, 4, 4);
+                }
+            }
+
+            drawContinuousFences(camX, visibleWidth);
+            drawDecorations(camX, visibleWidth);
+
+            if (isFinishLineSpawned) {
+                postFinishTrees.forEach(tree => {
+                    let treeScreenX = tree.x - camX;
+                    if (treeScreenX > drawEndX && treeScreenX > -100 && treeScreenX < width + 100) {
+                        drawSimpleTree(treeScreenX, tree.y, tree.radius, tree.color);
+                    }
+                });
+            }
+
+            drawLines(camX, trackY, trackH);
+
+            obstacles.forEach(obs => {
+                if (obs.x > camX - 250 && obs.x < camX + width + 100) {
+                    let drawX = obs.x - camX;
+
+                    if (isFinishLineSpawned && drawX > drawEndX) return;
+
+                    if (obs.typeKey === 'NITRO_PAD') {
+                        ctx.save(); ctx.translate(drawX, obs.y);
+
+                        // [MOD] VẼ NITRO CHÌM XUỐNG VÀ RỘNG
+                        let padW = obs.config.width;
+                        let padH = obs.config.height;
+
+                        // Nền mờ (chìm) - màu cam vàng năng lượng
+                        let grad = ctx.createLinearGradient(-padW / 2, 0, padW / 2, 0);
+                        grad.addColorStop(0, "rgba(255, 140, 0, 0.1)");
+                        grad.addColorStop(0.5, "rgba(255, 165, 0, 0.4)");
+                        grad.addColorStop(1, "rgba(255, 140, 0, 0.1)");
+                        ctx.fillStyle = grad;
+                        ctx.fillRect(-padW / 2, -padH / 2, padW, padH);
+
+                        // Mũi tên chỉ hướng chìm (Chevron)
+                        ctx.lineWidth = 5;
+                        ctx.lineCap = "round";
+                        ctx.strokeStyle = "rgba(255, 235, 59, 0.6)"; // Vàng sáng nhưng trong suốt
+
+                        let arrowCount = 4;
+                        let spacing = padW / (arrowCount + 1);
+                        let startArrowX = -padW / 2 + spacing;
+
+                        for (let k = 0; k < arrowCount; k++) {
+                            let ax = startArrowX + k * spacing;
+                            ctx.beginPath();
+                            ctx.moveTo(ax - 15, -20);
+                            ctx.lineTo(ax + 15, 0);
+                            ctx.lineTo(ax - 15, 20);
+                            ctx.stroke();
+                        }
+
+                        ctx.restore();
+                    }
+                    else if (obs.typeKey === 'SPIKE') {
+                        ctx.save(); ctx.translate(drawX, obs.y);
+                        let gradBase = ctx.createRadialGradient(0, 0, 5, 0, 0, 20);
+                        gradBase.addColorStop(0, "#888"); gradBase.addColorStop(1, "#333");
+                        ctx.fillStyle = gradBase; ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2); ctx.fill();
+                        ctx.strokeStyle = "#111"; ctx.lineWidth = 1; ctx.stroke();
+                        ctx.fillStyle = "#DDD"; ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(-6, 5); ctx.lineTo(6, 5); ctx.fill();
+                        ctx.fillStyle = "#999"; ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(0, 5); ctx.lineTo(6, 5); ctx.fill();
+                        ctx.rotate((Math.PI * 2) / 3); ctx.fillStyle = "#DDD"; ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(-6, 5); ctx.lineTo(6, 5); ctx.fill();
+                        ctx.fillStyle = "#999"; ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(0, 5); ctx.lineTo(6, 5); ctx.fill();
+                        ctx.rotate((Math.PI * 2) / 3); ctx.fillStyle = "#DDD"; ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(-6, 5); ctx.lineTo(6, 5); ctx.fill();
+                        ctx.fillStyle = "#999"; ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(0, 5); ctx.lineTo(6, 5); ctx.fill();
+                        ctx.rotate((Math.PI * 2) / 3); ctx.fillStyle = "#b71c1c"; ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
+                        ctx.restore();
+                    }
+                    else if (obs.typeKey === 'HOLE') {
+                        ctx.save(); ctx.translate(drawX, obs.y);
+                        let rHole = obs.config.radius;
+                        let grad = ctx.createRadialGradient(0, 0, rHole * 0.3, 0, 0, rHole);
+                        grad.addColorStop(0, "#000");
+                        grad.addColorStop(0.7, "#111");
+                        grad.addColorStop(1, "rgba(93, 64, 55, 0)");
+                        ctx.fillStyle = grad;
+                        ctx.beginPath(); ctx.arc(0, 0, rHole, 0, Math.PI * 2); ctx.fill();
+                        ctx.restore();
+                    }
+                    else {
+                        // VẼ BÙN
+                        ctx.save(); ctx.translate(drawX, obs.y);
+                        let rad = obs.config.radius;
+
+                        ctx.fillStyle = obs.config.color;
+                        ctx.beginPath();
+                        for (let angle = 0; angle < Math.PI * 2; angle += 0.2) {
+                            let r = rad + Math.sin(angle * 3 + obs.x) * 5 + Math.cos(angle * 5) * 5;
+                            let px = Math.cos(angle) * r;
+                            let py = Math.sin(angle) * r * 0.8;
+                            if (angle === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                        }
+                        ctx.closePath(); ctx.fill();
+                        ctx.fillStyle = "rgba(40, 20, 10, 0.5)";
+                        for (let k = 0; k < 5; k++) {
+                            ctx.beginPath(); ctx.arc(Math.sin(k) * rad * 0.5, Math.cos(k) * rad * 0.5, 5 + Math.random() * 5, 0, Math.PI * 2); ctx.fill();
+                        }
+                        ctx.restore();
+                    }
+                }
+            });
+        }
+
+        function drawContinuousFences(camX, visibleWidth) {
+            drawWoodFence(camX, TOP_MARGIN - 20, visibleWidth);
+            drawWoodFence(camX, height - BOTTOM_MARGIN, visibleWidth);
+        }
+
+        function drawWoodFence(camX, y, width) {
+            ctx.fillStyle = "#5D4037";
+            ctx.fillRect(0, y + 5, width, 5); ctx.fillRect(0, y + 15, width, 5);
+            let startX = -(camX % 60);
+            for (let i = startX; i < width; i += 60) {
+                ctx.fillRect(i, y, 8, 25);
+                ctx.fillStyle = "#4E342E"; ctx.fillRect(i - 1, y - 2, 10, 4); ctx.fillStyle = "#5D4037";
+            }
+        }
+
+        function drawDecorations(camX, visibleWidth) {
+            let startX = -(camX % 150);
+            for (let i = startX; i < visibleWidth; i += 150) {
+                if (i % 300 === 0) drawHayBale(i, TOP_MARGIN - 45); else drawTireStack(i, TOP_MARGIN - 40);
+            }
+            for (let i = startX + 75; i < visibleWidth; i += 150) {
+                if (i % 300 === 0) drawHayBale(i, height - BOTTOM_MARGIN + 5); else drawTireStack(i, height - BOTTOM_MARGIN + 10);
+            }
+        }
+
+        function drawHayBale(x, y) {
+            ctx.save(); ctx.translate(x, y);
+            ctx.fillStyle = "#FFD54F"; ctx.fillRect(0, 0, 30, 20);
+            ctx.strokeStyle = "#FFB300"; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(10, 20); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(20, 0); ctx.lineTo(20, 20); ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawTireStack(x, y) {
+            ctx.save(); ctx.translate(x, y);
+            ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(10, 10, 10, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#444"; ctx.beginPath(); ctx.arc(12, 8, 10, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(12, 8, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
+
+        function drawSimpleTree(x, y, radius, color) {
+            ctx.save(); ctx.translate(x, y);
+            ctx.fillStyle = "#5D4037"; ctx.fillRect(-radius / 4, 0, radius / 2, radius / 2);
+            ctx.fillStyle = color; ctx.beginPath(); ctx.arc(0, -radius / 2, radius, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "rgba(0,0,0,0.2)"; ctx.beginPath(); ctx.ellipse(0, radius / 2 - 5, radius, radius / 3, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
+
+        function drawLines(camX, y, h) {
+            let sx = START_LINE - camX;
+            if (sx > -100 && sx < width) {
+                let startW = 30;
+                ctx.fillStyle = "#fff"; ctx.fillRect(sx - startW, y, startW, h);
+                ctx.fillStyle = "#000"; for (let row = y; row < y + h; row += 20) { if ((row / 20) % 2 === 0) ctx.fillRect(sx - startW, row, startW / 2, 20); else ctx.fillRect(sx - startW + startW / 2, row, startW / 2, 20); }
+                ctx.fillStyle = "#FFF"; ctx.font = "bold 22px 'Roboto Condensed'"; ctx.textAlign = "right"; ctx.fillText("START", sx - startW - 10, y + 30);
+            }
+
+            if (isFinishLineSpawned) {
+                let fx = FINISH_LINE - camX;
+                if (fx < width && fx > -100) {
+                    let finishW = 30;
+                    ctx.fillStyle = "#fff"; ctx.fillRect(fx, y, finishW, h);
+                    ctx.fillStyle = "#000"; for (let row = y; row < y + h; row += 20) { if ((row / 20) % 2 === 0) ctx.fillRect(fx, row, finishW / 2, 20); else ctx.fillRect(fx + finishW / 2, row, finishW / 2, 20); }
+                    ctx.fillStyle = "#FFF"; ctx.font = "bold 20px 'Roboto Condensed'"; ctx.textAlign = "center"; ctx.fillText("FINISH", fx + finishW + 35, y + 30);
+                }
+            }
+        }
+
+        function showComment(horse, text) {
+            let bubble = document.createElement('div');
+            bubble.className = 'chat-bubble';
+            bubble.innerText = text;
+            horse.domElement.appendChild(bubble);
+            setTimeout(() => { bubble.remove(); }, 2000);
+        }
+
+        function generateObstacles(trackHeight) {
+            obstacles = [];
+            let maxDist = CONSTANT_SPEED * 60 * 600;
+
+            // [MOD] MẬT ĐỘ BÌNH THƯỜNG (Khoảng cách 150px)
+            let stepX = 150;
+            let numObstacles = Math.floor(maxDist / stepX);
+
+            let safeYMin = TOP_MARGIN + 30;
+            let safeYMax = height - BOTTOM_MARGIN - 30;
+            let safeHeight = safeYMax - safeYMin;
+
+            for (let i = 0; i < numObstacles; i++) {
+                let rand = Math.random();
+                let key;
+
+                // [MOD] CÂN BẰNG TỶ LỆ (Bùn ít hơn, Nitro nhiều hơn)
+                if (rand < 0.35) {
+                    key = 'MUD'; // 35% Bùn
+                } else if (rand < 0.7) {
+                    key = 'SPIKE'; // 35% Gai
+                } else {
+                    key = 'NITRO_PAD'; // 30% Nitro (Nhiều cơ hội tăng tốc)
+                }
+
+                let config = OBS_TYPES[key];
+                let x = START_LINE + 500 + (i * stepX) + (Math.random() * stepX * 0.5);
+                let y = safeYMin + Math.random() * safeHeight;
+
+                obstacles.push({
+                    x: x, y: y,
+                    config: config, typeKey: key,
+                    rotation: 0
+                });
+            }
+        }
+
+        function startGame() {
+            if (isRacing) return;
+            horses = []; particles = [];
+            COMPOSITE.clear(world);
+            horseLayer.innerHTML = '';
+
+            let qty = parseInt(document.getElementById('inp-qty').value);
+            targetGameTime = parseInt(document.getElementById('inp-time').value) || 30;
+
+            FINISH_LINE = 9999999;
+            isFinishLineSpawned = false;
+
+            let trackH = height - TOP_MARGIN - BOTTOM_MARGIN;
+            let laneH = trackH / qty;
+
+            generateObstacles(height);
+
+            sinkholeTimer = 0;
+            sinkholeCount = 0;
+            maxSinkholes = 3;
+            nextSinkholeTime = 180 + Math.random() * 300;
+
+            for (let i = 0; i < qty; i++) {
+                let y = TOP_MARGIN + laneH / 2 + i * laneH;
+
+                let body = BODIES.circle(START_LINE, y, 20, { isSensor: true });
+                let jColor = JOCKEY_COLORS[i % JOCKEY_COLORS.length];
+                let id = i + 1;
+
+                let horseFilter = HORSE_FILTERS[Math.floor(Math.random() * HORSE_FILTERS.length)];
+
+                let wrapper = document.createElement('div');
+                wrapper.className = 'horse-wrapper';
+
+                let img = document.createElement('img');
+                img.src = HORSE_GIF_FILE;
+                img.style.filter = `drop-shadow(0 10px 5px rgba(0,0,0,0.3)) ${horseFilter}`;
+
+                let saddleTxt = document.createElement('div');
+                saddleTxt.className = 'saddle-number';
+                saddleTxt.innerText = id;
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(saddleTxt);
+                horseLayer.appendChild(wrapper);
+
+                horses.push({
+                    id: id, body: body,
+                    originY: y, targetY: y,
+                    baseSpeed: CONSTANT_SPEED,
+                    currentSpeedMultiplier: 1.0,
+                    targetSpeedMultiplier: 1.0,
+                    jockeyColor: jColor, domElement: wrapper,
+                    stunTimer: 0, hitType: null,
+                    powerupTimer: 0, cooldownTimer: 0,
+                    currentNitro: 1.0,
+                    originalFilter: horseFilter,
+                    isEliminated: false,
+                    fallScale: 1.0,
+                    opacity: 1.0
+                });
+                COMPOSITE.add(world, body);
+            }
+
+            isRacing = true;
+            startTime = Date.now();
+            globalFrame = 0;
+            document.getElementById('winner-screen').style.display = 'none';
+            document.getElementById('winner-screen').style.opacity = '0';
+            loop();
+        }
+
+        function resetGame() {
+            isRacing = false;
+            horses = [];
+            horseLayer.innerHTML = '';
+            postFinishTrees = [];
+            document.getElementById('winner-screen').style.opacity = '0';
+            setTimeout(() => { document.getElementById('winner-screen').style.display = 'none'; }, 500);
+            document.getElementById('timer').innerText = "00:00.0";
+            document.getElementById('sinkhole-alert').classList.remove('show');
+            drawBackground(0);
+        }
+
+        function endGame(winner) {
+            isRacing = false;
+            playSound('win');
+            let ws = document.getElementById('winner-screen');
+            ws.style.display = 'flex';
+            setTimeout(() => { ws.style.opacity = '1'; }, 50);
+            document.getElementById('win-name').innerText = "NGỰA SỐ " + winner.id;
+            document.getElementById('win-name').style.color = winner.jockeyColor;
+            let winImg = document.getElementById('win-img');
+            winImg.src = HORSE_GIF_FILE;
+            winImg.style.filter = winner.originalFilter;
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+
+            // --- CẬP NHẬT KHO QUÀ ---
+            let prizeName = "Vô Địch";
+            let prizeItem = "";
+
+            if (currentPrizeIndex !== -1) {
+                const p = prizes[currentPrizeIndex];
+                prizeName = p.name;
+                prizeItem = p.item;
+
+                prizes[currentPrizeIndex].quantity--;
+                localStorage.setItem('lucky_draw_prizes', JSON.stringify(prizes));
+                updatePrizeUI();
+            }
+
+            // --- LƯU NGƯỜI THẮNG VÀO HỆ THỐNG ---
+            saveWinnerToSystem({
+                name: "Ngựa Số " + winner.id,
+                id: "", // Horse game không có ID nhân viên
+                prize: prizeName,
+                prizeItem: prizeItem,
+                timestamp: Date.now(),
+                gameType: "Đua Ngựa"
+            });
+        }
+
+        function saveWinnerToSystem(winnerData) {
+            let winners = JSON.parse(localStorage.getItem('lucky_draw_winners') || '[]');
+            winners.push(winnerData);
+            localStorage.setItem('lucky_draw_winners', JSON.stringify(winners));
+            console.log("Saved winner:", winnerData);
+        }
+
+        function updateTimer() {
+            let d = Date.now() - startTime;
+            let m = Math.floor(d / 60000);
+            let s = Math.floor((d / 1000) % 60);
+            let ms = Math.floor((d % 1000) / 100);
+            document.getElementById('timer').innerText = `${m}:${s < 10 ? '0' + s : s}.${ms}`;
+        }
+
+        function updateRank() {
+            let activeHorses = horses.filter(h => !h.isEliminated);
+            let sorted = [...activeHorses].sort((a, b) => b.body.position.x - a.body.position.x);
+            let html = "";
+            for (let i = 0; i < Math.min(5, sorted.length); i++) {
+                html += `<div class="r-item"><div class="r-badge" style="background:${sorted[i].jockeyColor}"></div> #${sorted[i].id}</div>`;
+            }
+            let eliminated = horses.filter(h => h.isEliminated);
+            if (eliminated.length > 0) {
+                html += `<div style="border-top:1px solid #444; margin-top:5px; padding-top:5px; font-size:11px; color:#f44336">LOẠI: ${eliminated.map(h => '#' + h.id).join(', ')}</div>`;
+            }
+            document.getElementById('rank-list').innerHTML = html;
+        }
+
+        drawBackground(0);
+    </script>
+</body>
+
+</html>
