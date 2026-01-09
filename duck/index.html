@@ -286,49 +286,16 @@
 
     <canvas id="gameCanvas"></canvas>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script> -->
     <script>
-        // --- AUDIO ---
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
+        // --- AUDIO REMOVED ---
         function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            const now = audioCtx.currentTime;
-            if (type === 'whistle') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); osc.frequency.linearRampToValueAtTime(1500, now + 0.1);
-                gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0, now + 0.5); osc.start(now); osc.stop(now + 0.5);
-            } else if (type === 'slip') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
-                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); osc.start(now); osc.stop(now + 0.3);
-            } else if (type === 'hit') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(50, now + 0.1);
-                gain.gain.setValueAtTime(0.4, now); gain.gain.linearRampToValueAtTime(0, now + 0.1); osc.start(now); osc.stop(now + 0.1);
-            } else if (type === 'zap') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(500, now + 0.1);
-                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.2); osc.start(now); osc.stop(now + 0.2);
-            } else if (type === 'thunder') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(60, now); osc.frequency.exponentialRampToValueAtTime(10, now + 1.0);
-                gain.gain.setValueAtTime(1.0, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.0); osc.start(now); osc.stop(now + 1.0);
-            } else if (type === 'splash') {
-                let buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.5, audioCtx.sampleRate);
-                let data = buffer.getChannelData(0); for (let i = 0; i < buffer.length; i++) data[i] = Math.random() * 2 - 1;
-                let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let noiseGain = audioCtx.createGain();
-                noise.connect(noiseGain); noiseGain.connect(audioCtx.destination);
-                noiseGain.gain.setValueAtTime(0.5, now); noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); noise.start(now);
-            } else if (type === 'win') {
-                let f = [523, 659, 784, 1046];
-                f.forEach((freq, i) => {
-                    let o = audioCtx.createOscillator(); let g = audioCtx.createGain(); o.connect(g); g.connect(audioCtx.destination);
-                    o.type = 'square'; o.frequency.value = freq; g.gain.setValueAtTime(0.05, now + i * 0.1); g.gain.linearRampToValueAtTime(0, now + i * 0.1 + 0.3);
-                    o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.3);
-                });
-            }
+            // Audio removed as per user request
         }
 
         // --- CONSTANTS ---
-        const ENGINE = Matter.Engine, BODIES = Matter.Bodies, COMPOSITE = Matter.Composite, BODY = Matter.Body;
+        // --- CONSTANTS ---
+        // const ENGINE = Matter.Engine, BODIES = Matter.Bodies, COMPOSITE = Matter.Composite, BODY = Matter.Body; // REMOVED
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         let width = window.innerWidth, height = window.innerHeight;
@@ -341,14 +308,20 @@
         const FINISH_LINE = MAP_LENGTH - 400;
         const TRACK_LENGTH = FINISH_LINE - START_LINE;
 
-        const engine = ENGINE.create(); engine.gravity.y = 0;
-        const world = engine.world;
+        const engine = null; // Removed Matter.js
+        const world = null; // Removed Matter.js
+
+        // --- CACHING ---
+        let envCanvas = document.createElement('canvas');
+        let envCtx = envCanvas.getContext('2d');
+        let envCached = false;
 
         // --- GAME VARIABLES ---
         let ducks = [];
         let rocks = []; let bananas = []; let whirlpools = []; let jellyfish = []; let logs = []; let waves = []; let lightnings = []; let windLines = [];
         let isRacing = false;
-        let isStormMode = false;
+        // let isStormMode = false; // REMOVED
+        // let isStormMode = false; // REMOVED
 
         // ✅ ADD: time-based progress variables
         let raceStartTime = 0;
@@ -450,12 +423,12 @@
                     if (duck.status === 'NORMAL') {
                         // Check Logs
                         for (let log of logs) {
-                            let dx = Math.abs(duck.x - log.position.x);
-                            let dy = Math.abs(duck.y - log.position.y);
+                            let dx = Math.abs(duck.x - log.x);
+                            let dy = Math.abs(duck.y - log.y);
                             if (dx < 35 && dy < 75) {
                                 duck.status = 'HIT_LOG';
                                 duck.stunTimer = 1.0; // 1 second stun
-                                duck.lastLogY = log.position.y;
+                                duck.lastLogY = log.y;
                                 duck.visualAngle = -0.3;
                                 playSound('hit');
                             }
@@ -546,19 +519,13 @@
                     let noiseX = Math.sin(elapsed * frequency + duck.randomSeed) * amplitude;
                     let staminaX = Math.sin(elapsed * staminaFreq) * staminaAmp;
 
-                    // Combine noises
                     let totalNoise = noiseX + staminaX;
 
-                    // Damping: Reduce noise as t approaches 1 to ensure they finish near their rank
-                    totalNoise *= (1 - Math.pow(clampedT, 2)); // Quadratic damping for smoother finish
+                    totalNoise *= (1 - Math.pow(clampedT, 2));
 
-                    // 3. Rank Bias (The Rigging)
-                    // Bonus for winner (Rank 1), penalty for loser (Rank N)
-                    // Bias increases quadratically with t
                     let biasX = 0;
-                    let rankFactor = (this.ducks.length - duck.rank) / this.ducks.length; // 1 (best) to 0 (worst)
+                    let rankFactor = (this.ducks.length - duck.rank) / this.ducks.length;
 
-                    // Reduce bias impact slightly to keep them closer
                     if (duck.rank === 1) {
                         biasX = (this.distance * 0.03) * (clampedT * clampedT);
                     } else if (duck.rank === this.ducks.length) {
@@ -567,8 +534,6 @@
                         biasX = (this.distance * 0.015) * (rankFactor - 0.5) * (clampedT * clampedT);
                     }
 
-                    // 4. Final Position Calculation
-                    // Include penaltyX
                     let finalX = baseX + totalNoise + biasX + duck.penaltyX;
 
                     if (clampedT >= 1) {
@@ -577,13 +542,10 @@
 
                     finalX = Math.max(0, finalX);
 
-                    // Y-Axis Bobbing (Pure Visual)
-                    // Slower bobbing for "swimming" feel
                     let bobSpeed = 2 + (duck.randomSeed % 3);
-                    let bobHeight = 3; // Reduced height
+                    let bobHeight = 3;
                     let bobY = Math.sin(elapsed * bobSpeed) * bobHeight;
 
-                    // Apply separation offset (decaying)
                     if (duck.separationOffsetY) {
                         bobY += duck.separationOffsetY;
                         duck.separationOffsetY *= 0.95;
@@ -592,24 +554,19 @@
                     duck.x = START_LINE + finalX;
                     duck.y = duck.initY + bobY;
 
-                    // Update Matter.js body
-                    if (duck.body) {
-                        BODY.setPosition(duck.body, { x: duck.x, y: duck.y });
-                        BODY.setVelocity(duck.body, { x: 0, y: 0 });
-                        // Apply visual angle
-                        BODY.setAngle(duck.body, duck.visualAngle);
-                        BODY.setAngularVelocity(duck.body, 0);
-                    }
+                    duck.x = START_LINE + finalX;
+                    duck.y = duck.initY + bobY;
+
+                    // Matter.js body update removed
                 });
 
-                return t >= 1; // Return true if race finished
+                return t >= 1;
             }
         }
 
         let raceLogic = null;
 
 
-        // --- SPAWNERS ---
         function spawnStaticObstacles() {
             bananas = []; whirlpools = []; jellyfish = []; logs = [];
             let qty = ducks.length;
@@ -628,8 +585,15 @@
                 let ly;
                 if (mapType === 'TUNNEL') { if (Math.random() < 0.7) ly = (i % 2 === 0) ? TOP_MARGIN + 40 : height - 40; else ly = getRandomY(); }
                 else { if (Math.random() < 0.7) ly = (TOP_MARGIN + height) / 2 + (Math.random() - 0.5) * 100; else ly = getRandomY(); }
-                let logBody = BODIES.rectangle(lx, ly, 40, 140, { isStatic: true, angle: (Math.random() - 0.5) * 0.5, render: { visible: false }, collisionFilter: { category: 0x0004 } });
-                COMPOSITE.add(world, logBody); logs.push(logBody);
+
+                // Simple Log Object
+                logs.push({
+                    x: lx,
+                    y: ly,
+                    width: 40,
+                    height: 140,
+                    angle: (Math.random() - 0.5) * 0.5
+                });
             }
 
             // Bananas: Previous 10 + qty * 0.5 -> New: 8 + qty * 0.1 (Max ~28)
@@ -637,50 +601,25 @@
             bananaCount = Math.min(bananaCount, 25);
 
             for (let i = 0; i < bananaCount; i++) bananas.push({ x: START_LINE + 300 + Math.random() * (MAP_LENGTH - 800), y: getRandomY(), active: true });
-
-            // Jellyfish: Previous 5 + qty * 0.2 -> New: 5 + qty * 0.05 (Max ~15)
-            let jellyCount = 5 + Math.floor(qty * 0.05);
-            jellyCount = Math.min(jellyCount, 15);
-
-            for (let i = 0; i < jellyCount; i++) jellyfish.push({ x: START_LINE + 500 + Math.random() * (MAP_LENGTH - 1000), y: getRandomY(), active: true, offset: Math.random() * 10 });
-
-            // Whirlpools: Keep low
-            let whirlBase = isStormMode ? 3 : 1;
-            let whirlCount = Math.min(whirlBase + Math.floor(qty / 50), 5); // Max 5
-
-            for (let i = 0; i < whirlCount; i++) {
-                let wx = START_LINE + 500 + Math.random() * (MAP_LENGTH - 1000);
-                let wy;
-                if (mapType === 'TUNNEL') wy = (TOP_MARGIN + height) / 2 + (Math.random() - 0.5) * 100;
-                else wy = (i % 2 === 0) ? TOP_MARGIN + 60 : height - 60;
-                whirlpools.push({ x: wx, y: wy, radius: isStormMode ? 90 : 70 });
-            }
-
-            console.log(`Spawned: ${logCount} Logs, ${bananaCount} Bananas, ${jellyCount} Jellyfish, ${whirlCount} Whirlpools`);
         }
 
         // --- CORE LOOP ---
         function loop() {
             if (!isRacing && ducks.length === 0) {
-                ctx.fillStyle = isStormMode ? "#263238" : "#4fc3f7"; ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = "#4fc3f7"; ctx.fillRect(0, 0, width, height);
                 drawEnvironment(0);
                 requestAnimationFrame(loop);
                 return;
             }
 
-            // ❌ OPTIMIZATION: Disable Physics Engine Update
-            // ENGINE.update(engine, 1000 / 60);
-
-            waterOffset += isStormMode ? 2.5 : 0.8;
+            waterOffset += 0.8;
             globalTimer += 0.05;
             if (flashOpacity > 0) flashOpacity -= 0.02;
 
             if (isRacing && raceLogic) {
-                let now = performance.now() / 1000; // seconds
+                let now = performance.now() / 1000;
                 let isFinished = raceLogic.update(now);
 
-                // Update Camera
-                // Find leading duck
                 let maxX = 0;
                 ducks.forEach(d => { if (d.x > maxX) maxX = d.x; });
 
@@ -696,74 +635,61 @@
                 if (isFinished) finishGame();
             }
 
-            // Render (Giữ nguyên)
             ctx.clearRect(0, 0, width, height);
             drawWater(cameraX);
             ctx.save(); ctx.translate(-cameraX, 0);
             drawEnvironment(cameraX);
-            drawLogs(); drawWhirlpools(); drawBananas(); drawJellyfish(); drawRocks(); drawDucks();
-            if (isStormMode) { drawWaves(); drawRain(cameraX); drawWindLines(); drawLightnings(); }
+            drawLogs(); drawBananas(); drawRocks(); drawDucks();
             if (flashOpacity > 0) { ctx.fillStyle = `rgba(255, 255, 255, ${flashOpacity})`; ctx.fillRect(cameraX, 0, width, height); }
             ctx.restore();
 
             requestAnimationFrame(loop);
         }
 
-        // --- HELPER FUNCTIONS ---
         function startGame() {
-            console.log("Starting game...");
-            loadCurrentPrize(); // Reload to be safe
+            loadCurrentPrize();
             if (currentPrizeIndex === -1) { alert("Đã hết giải thưởng!"); return; }
             if (prizes[currentPrizeIndex].quantity <= 0) { alert("Giải này đã hết!"); updatePrizeUI(); return; }
 
             if (isRacing) return;
             playSound('whistle');
-            COMPOSITE.clear(world); ENGINE.clear(engine);
-            ducks = []; rocks = []; waves = []; lightnings = []; windLines = [];
-            isStormMode = Math.random() < 0.3;
-
+            if (isRacing) return;
+            playSound('whistle');
+            // COMPOSITE.clear(world); ENGINE.clear(engine); // REMOVED
+            ducks = []; rocks = [];
+            ducks = []; rocks = [];
             const uiLayer = document.getElementById('ui-layer');
             const alertBox = document.getElementById('scenario-alert');
-            if (isStormMode) { uiLayer.style.background = "linear-gradient(to bottom, #263238, #37474f)"; alertBox.innerHTML = `⛈️ STORM MODE<span>Big Waves, Heavy Rain & Lightning!</span>`; alertBox.style.background = "rgba(38, 50, 56, 0.9)"; alertBox.style.border = "3px solid #ff5252"; }
-            else { uiLayer.style.background = "linear-gradient(to bottom, #0288d1, #01579b)"; alertBox.innerHTML = `☀️ SUNNY RACE<span>Watch out for Logs, Bananas & Jellyfish!</span>`; alertBox.style.background = "rgba(1, 87, 155, 0.9)"; alertBox.style.border = "3px solid #4fc3f7"; }
+            uiLayer.style.background = "linear-gradient(to bottom, #0288d1, #01579b)";
+            alertBox.innerHTML = `☀️ SUNNY RACE<span>Watch out for Logs & Bananas!</span>`;
+            alertBox.style.background = "rgba(1, 87, 155, 0.9)";
+            alertBox.style.border = "3px solid #4fc3f7";
+
             alertBox.style.transform = "translateX(-50%) scale(1)"; setTimeout(() => { alertBox.style.transform = "translateX(-50%) scale(0)"; }, 3000);
 
             let qty = parseInt(document.getElementById('inp-qty').value);
-            console.log("Quantity:", qty);
 
-            // ✅ ADD: Lấy input time và chuyển thành duration (ms)
             let timeSec = parseInt(document.getElementById('inp-time').value) || 30;
-            raceDuration = timeSec; // Keep in seconds for RaceLogic
+            raceDuration = timeSec;
 
-            // ✅ ADD: Random Winner (Deterministic)
             winnerId = Math.floor(Math.random() * qty) + 1;
-            console.log("Winner: #" + winnerId);
 
             let availableHeight = height - TOP_MARGIN - 100;
             let laneHeight = availableHeight / qty;
-            console.log("Lane Height:", laneHeight);
 
-            // Pre-calculate ranks (simple shuffle for now, but ensure winner is rank 1)
             let ranks = Array.from({ length: qty }, (_, i) => i + 1);
-            // Shuffle ranks
             for (let i = ranks.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [ranks[i], ranks[j]] = [ranks[j], ranks[i]];
             }
 
-            // Assign Rank 1 to winnerId
-            // Find who has rank 1 currently
             let rank1Idx = ranks.indexOf(1);
-            // Find index of winnerId (which is winnerId - 1 since ducks are 1-based)
             let winnerIdx = winnerId - 1;
-
-            // Swap ranks so winnerId gets Rank 1
             if (rank1Idx !== -1) {
                 ranks[rank1Idx] = ranks[winnerIdx];
                 ranks[winnerIdx] = 1;
             }
 
-            // Collision Categories
             const CAT_DUCK = 0x0002;
             const CAT_OBSTACLE = 0x0004;
 
@@ -771,18 +697,9 @@
                 let x = START_LINE;
                 let y = TOP_MARGIN + 50 + (i * laneHeight);
 
-                // Create body with collision filter to avoid duck-duck collisions
-                let body = BODIES.circle(x, y, 22, {
-                    isSensor: true,
-                    collisionFilter: {
-                        category: CAT_DUCK,
-                        mask: CAT_OBSTACLE // Only collide with obstacles
-                    }
-                });
-
                 ducks.push({
                     id: i + 1,
-                    body: body,
+                    // body: body, // REMOVED
                     initY: y,
                     rank: ranks[i],
                     randomSeed: Math.floor(Math.random() * 10000),
@@ -791,19 +708,15 @@
                     statusTimer: 0,
                     visualAngle: 0,
                     x: x,
-                    y: y
+                    y: y,
+                    penaltyX: 0
                 });
-                COMPOSITE.add(world, body);
             }
-
-            // Initialize RaceLogic
             raceLogic = new RaceLogic(raceDuration, TRACK_LENGTH, ducks);
             raceLogic.start();
 
             spawnStaticObstacles();
-            COMPOSITE.add(world, [BODIES.rectangle(MAP_LENGTH / 2, TOP_MARGIN - 50, MAP_LENGTH + 2000, 100, { isStatic: true }), BODIES.rectangle(MAP_LENGTH / 2, height + 50, MAP_LENGTH + 2000, 100, { isStatic: true })]);
             isRacing = true; document.getElementById('winner-screen').style.display = 'none';
-            console.log("Game started successfully with " + ducks.length + " ducks.");
         }
 
         function finishGame() {
@@ -815,7 +728,6 @@
                 confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
                 drawWinnerAvatar(winner);
 
-                // --- CẬP NHẬT KHO QUÀ ---
                 let prizeName = "Vô Địch";
                 let prizeItem = "";
 
@@ -829,10 +741,9 @@
                     updatePrizeUI();
                 }
 
-                // --- LƯU NGƯỜI THẮNG VÀO HỆ THỐNG ---
                 saveWinnerToSystem({
                     name: "Vịt #" + winner.id,
-                    id: "", // Duck game không có ID nhân viên
+                    id: "",
                     prize: prizeName,
                     prizeItem: prizeItem,
                     timestamp: Date.now(),
@@ -845,11 +756,9 @@
             let winners = JSON.parse(localStorage.getItem('lucky_draw_winners') || '[]');
             winners.push(winnerData);
             localStorage.setItem('lucky_draw_winners', JSON.stringify(winners));
-            console.log("Saved winner:", winnerData);
         }
-        function resetGame() { isRacing = false; ducks = []; rocks = []; bananas = []; logs = []; jellyfish = []; whirlpools = []; waves = []; lightnings = []; windLines = []; COMPOSITE.clear(world); document.getElementById('timer').innerText = "00:00.0"; document.getElementById('winner-screen').style.display = 'none'; document.getElementById('scenario-alert').style.transform = "translateX(-50%) scale(0)"; document.getElementById('rank-list').innerHTML = "---"; document.getElementById('ui-layer').style.background = "linear-gradient(to bottom, #0288d1, #01579b)"; cameraX = 0; requestAnimationFrame(() => { ctx.clearRect(0, 0, width, height); ctx.fillStyle = "#4fc3f7"; ctx.fillRect(0, 0, width, height); drawEnvironment(0); }); }
+        function resetGame() { isRacing = false; ducks = []; rocks = []; bananas = []; logs = []; /* COMPOSITE.clear(world); */ document.getElementById('timer').innerText = "00:00.0"; document.getElementById('winner-screen').style.display = 'none'; document.getElementById('scenario-alert').style.transform = "translateX(-50%) scale(0)"; document.getElementById('rank-list').innerHTML = "---"; document.getElementById('ui-layer').style.background = "linear-gradient(to bottom, #0288d1, #01579b)"; cameraX = 0; requestAnimationFrame(() => { ctx.clearRect(0, 0, width, height); ctx.fillStyle = "#4fc3f7"; ctx.fillRect(0, 0, width, height); drawEnvironment(0); }); }
 
-        // ✅ MODIFIED: Update timer UI based on elapsed time
         function updateTimerUI(elapsed) {
             let ms = Math.floor((elapsed % 1000) / 100);
             let s = Math.floor((elapsed / 1000) % 60);
@@ -859,7 +768,6 @@
 
         function updateRankUI() { let sorted = [...ducks].sort((a, b) => b.x - a.x); let html = ""; for (let i = 0; i < Math.min(5, sorted.length); i++) { html += `<div class="r-item"><span class="${i === 0 ? 'r-1' : ''}">#${sorted[i].id}</span></div>`; } document.getElementById('rank-list').innerHTML = html; }
 
-        // ✅ ADD: Draw Winner Avatar
         function drawWinnerAvatar(duck) {
             const c = document.getElementById('win-canvas');
             const cx = c.getContext('2d');
@@ -867,9 +775,8 @@
 
             cx.save();
             cx.translate(c.width / 2, c.height / 2);
-            cx.scale(3, 3); // Scale up 3x
+            cx.scale(3, 3);
 
-            // Draw Duck (Simplified version of drawDucks)
             cx.shadowColor = "rgba(0,0,0,0.2)"; cx.shadowBlur = 4; cx.shadowOffsetY = 2;
             cx.fillStyle = "#ffeb3b";
             cx.beginPath(); cx.ellipse(0, 5, 22, 14, 0, 0, Math.PI * 2); cx.arc(10, -10, 15, 0, Math.PI * 2); cx.moveTo(-10, 0); cx.lineTo(-30, -8); cx.lineTo(-20, 8); cx.fill();
@@ -886,47 +793,159 @@
             cx.restore();
         }
 
-        // --- DRAW FUNCTIONS (Giữ nguyên) ---
-        function spawnRock(targetDuck) { let dropX = targetDuck.x + 200 + Math.random() * 150; let rockBody = BODIES.rectangle(dropX, -100, 35, 35, { restitution: 0.2, friction: 0.1, frictionAir: 0.05, label: 'rock', isSensor: true }); BODY.setVelocity(rockBody, { x: 0, y: 12 }); COMPOSITE.add(world, rockBody); rocks.push(rockBody); }
-        function spawnWave() { waves.push({ x: cameraX + width + 100, width: 150 + Math.random() * 100, speed: 12 + Math.random() * 5 }); }
-        function triggerLightning() { let visibleDucks = ducks.filter(d => d.x > cameraX && d.x < cameraX + width); if (visibleDucks.length > 0) { let target = visibleDucks[Math.floor(Math.random() * visibleDucks.length)]; let path = []; let currX = target.x + (Math.random() - 0.5) * 150; let currY = TOP_MARGIN - 50; let targetY = target.y; path.push({ x: currX, y: currY }); while (currY < targetY) { currY += Math.random() * 30 + 10; currX += (Math.random() - 0.5) * 60; path.push({ x: currX, y: currY }); } path.push({ x: target.x, y: target.y }); lightnings.push({ path: path, life: 60, maxLife: 60 }); target.status = 'ZAPPED'; target.statusTimer = 180; playSound('thunder'); flashOpacity = 0.6; } }
-        function drawWater(camX) { ctx.fillStyle = isStormMode ? "#37474f" : "#4fc3f7"; ctx.fillRect(0, 0, width, height); ctx.fillStyle = "rgba(255,255,255,0.15)"; for (let y = TOP_MARGIN + 20; y < height; y += 80) { let wx = (camX * 0.4 * (y / height) - waterOffset) % 200; for (let x = -200; x < width + 200; x += 150) { ctx.beginPath(); ctx.arc(x - wx, y, 8, 0, Math.PI * 2); ctx.fill(); } } }
-        function drawEnvironment(camX) { ctx.fillStyle = isStormMode ? "#33691e" : "#689f38"; ctx.fillRect(camX, TOP_MARGIN - 50, width, 50); ctx.fillStyle = "#5d4037"; for (let x = Math.floor(camX / 40) * 40; x < camX + width + 40; x += 40) { ctx.beginPath(); ctx.arc(x, TOP_MARGIN, 15, 0, Math.PI); ctx.fill(); } for (let y = TOP_MARGIN; y < height; y += 20) { ctx.fillStyle = ((y / 20) % 2 === 0) ? "black" : "white"; ctx.fillRect(START_LINE, y, 20, 20); ctx.fillStyle = ((y / 20) % 2 === 0) ? "white" : "black"; ctx.fillRect(START_LINE + 20, y, 20, 20); } for (let y = TOP_MARGIN; y < height; y += 40) { ctx.fillStyle = ((y / 40) % 2 === 0) ? "black" : "white"; ctx.fillRect(FINISH_LINE, y, 40, 40); ctx.fillStyle = ((y / 40) % 2 === 0) ? "white" : "black"; ctx.fillRect(FINISH_LINE + 40, y, 40, 40); } ctx.fillStyle = "#c62828"; ctx.fillRect(FINISH_LINE - 10, TOP_MARGIN - 20, 10, height - TOP_MARGIN); }
-        function drawWaves() { ctx.strokeStyle = "rgba(255, 255, 255, 0.4)"; ctx.lineWidth = 15; waves.forEach(w => { ctx.beginPath(); ctx.moveTo(w.x, TOP_MARGIN); ctx.quadraticCurveTo(w.x - 50, height / 2, w.x, height); ctx.stroke(); }); }
-        function drawRain(camX) { ctx.strokeStyle = "rgba(200, 200, 255, 0.3)"; ctx.lineWidth = 2; ctx.beginPath(); let startRainX = Math.floor(camX / 100) * 100; for (let i = 0; i < 50; i++) { let rx = startRainX + Math.random() * width; let ry = TOP_MARGIN + Math.random() * (height - TOP_MARGIN); ctx.moveTo(rx, ry); ctx.lineTo(rx - 20, ry + 30); } ctx.stroke(); }
-        function drawWindLines() { ctx.strokeStyle = "rgba(255, 255, 255, 0.2)"; ctx.lineWidth = 3; windLines.forEach(w => { ctx.beginPath(); ctx.moveTo(w.x, w.y); ctx.lineTo(w.x - w.len, w.y); ctx.stroke(); }); }
-        function drawLightnings() { ctx.strokeStyle = "#fff176"; ctx.lineWidth = 6; ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.shadowColor = "#ffff00"; ctx.shadowBlur = 30; for (let i = lightnings.length - 1; i >= 0; i--) { let l = lightnings[i]; if (l.life > 0) { ctx.globalAlpha = l.life / l.maxLife; ctx.beginPath(); let path = l.path; if (path.length > 0) { ctx.moveTo(path[0].x, path[0].y); for (let p of path) ctx.lineTo(p.x, p.y); } ctx.stroke(); l.life--; } else { lightnings.splice(i, 1); } } ctx.globalAlpha = 1.0; ctx.shadowBlur = 0; ctx.lineWidth = 1; }
-        function drawLogs() { ctx.fillStyle = "#795548"; ctx.strokeStyle = "#3e2723"; ctx.lineWidth = 2; logs.forEach(l => { ctx.save(); ctx.translate(l.position.x, l.position.y); ctx.rotate(l.angle); ctx.beginPath(); ctx.roundRect(-20, -70, 40, 140, 10); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-10, -50); ctx.lineTo(-10, 50); ctx.stroke(); ctx.restore(); }); }
-        function drawJellyfish() { jellyfish.forEach(j => { if (!j.active) return; let bob = Math.sin(globalTimer * 3 + j.offset) * 5; ctx.save(); ctx.translate(j.x, j.y + bob); ctx.fillStyle = "rgba(224, 64, 251, 0.7)"; ctx.beginPath(); ctx.arc(0, 0, 15, Math.PI, 0); ctx.fill(); ctx.strokeStyle = "rgba(224, 64, 251, 0.5)"; ctx.lineWidth = 2; for (let k = -10; k <= 10; k += 5) { ctx.beginPath(); ctx.moveTo(k, 0); ctx.quadraticCurveTo(k, 15, k + Math.sin(globalTimer * 10) * 5, 25); ctx.stroke(); } ctx.restore(); }); }
-        function drawWhirlpools() { whirlpools.forEach(w => { ctx.save(); ctx.translate(w.x, w.y); ctx.rotate(globalTimer * 2); for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(0, 0, w.radius - (i * 15), i, Math.PI * 2 + i - 0.5); ctx.strokeStyle = `rgba(179, 229, 252, ${0.8 - i * 0.2})`; ctx.lineWidth = 5; ctx.stroke(); } ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fillStyle = "#01579b"; ctx.fill(); ctx.restore(); }); }
+        function spawnRock(targetDuck) { /* Removed Matter.js rock spawning */ }
+        function drawWater(camX) { ctx.fillStyle = "#4fc3f7"; ctx.fillRect(0, 0, width, height); /* Sparkles removed */ }
+        function drawEnvironment(camX) {
+            if (!envCached || envCanvas.width !== width || envCanvas.height !== height) {
+                envCanvas.width = width;
+                envCanvas.height = height;
+                envCtx.clearRect(0, 0, width, height);
+
+                // Draw to offscreen canvas
+                envCtx.fillStyle = "#5d4037";
+
+                // Start Line
+                for (let y = TOP_MARGIN; y < height; y += 20) {
+                    envCtx.fillStyle = ((y / 20) % 2 === 0) ? "black" : "white";
+                    envCtx.fillRect(START_LINE, y, 20, 20);
+                    envCtx.fillStyle = ((y / 20) % 2 === 0) ? "white" : "black";
+                    envCtx.fillRect(START_LINE + 20, y, 20, 20);
+                }
+
+                // Finish Line
+                for (let y = TOP_MARGIN; y < height; y += 40) {
+                    envCtx.fillStyle = ((y / 40) % 2 === 0) ? "black" : "white";
+                    envCtx.fillRect(FINISH_LINE, y, 40, 40);
+                    envCtx.fillStyle = ((y / 40) % 2 === 0) ? "white" : "black";
+                    envCtx.fillRect(FINISH_LINE + 40, y, 40, 40);
+                }
+
+                // Red Tape
+                envCtx.fillStyle = "#c62828";
+                envCtx.fillRect(FINISH_LINE - 10, TOP_MARGIN - 20, 10, height - TOP_MARGIN);
+
+                envCached = true;
+            }
+
+            // Draw cached canvas
+            ctx.drawImage(envCanvas, -camX, 0);
+        }
+        function drawLogs() {
+            ctx.save();
+            // Shared styles
+            ctx.fillStyle = "#795548";
+            ctx.strokeStyle = "#3e2723";
+            ctx.lineWidth = 2;
+
+            logs.forEach(l => {
+                // Check if visible
+                if (l.x < cameraX - 100 || l.x > cameraX + width + 100) return;
+
+                ctx.save();
+                ctx.translate(l.x - cameraX, l.y); // Apply cameraX here
+                ctx.rotate(l.angle);
+                ctx.beginPath();
+                ctx.roundRect(-20, -70, 40, 140, 10);
+                ctx.fill();
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(-10, -50);
+                ctx.lineTo(-10, 50);
+                ctx.stroke();
+                ctx.restore();
+            });
+            ctx.restore();
+        }
         function drawBananas() { ctx.font = "24px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; bananas.forEach(b => { if (b.active) ctx.fillText("🍌", b.x, b.y); }); }
         function drawRocks() { ctx.font = "30px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; rocks.forEach(r => { ctx.save(); ctx.translate(r.position.x, r.position.y); ctx.rotate(r.angle); ctx.fillText("🪨", 0, 0); ctx.restore(); }); }
         function drawDucks() {
+            // Shared styles
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.shadowColor = "rgba(0,0,0,0.2)";
+            ctx.shadowOffsetY = 2;
+
             ducks.forEach(d => {
-                let x = d.x, y = d.y;
+                // Check if visible
+                if (d.x < cameraX - 100 || d.x > cameraX + width + 100) return;
+
+                let x = d.x - cameraX; // Apply cameraX
+                let y = d.y;
                 let angle = (d.status === 'SLIPPING' || d.status === 'SPINNING' || d.status === 'SHOCKED') ? d.visualAngle : 0;
                 if (d.status === 'HIT_LOG') angle = -0.5;
 
-                ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+
+                // Status Icons
                 if (d.status === 'SLIPPING') { ctx.font = "20px Arial"; ctx.fillText("💫", 0, -35); }
-                if (d.status === 'SPINNING') { ctx.font = "20px Arial"; ctx.fillText("😵", 0, -35); }
-                if (d.status === 'SHOCKED') { ctx.font = "20px Arial"; ctx.fillText("⚡", 0, -35); }
                 if (d.status === 'ZAPPED') { ctx.font = "20px Arial"; ctx.fillText("🔥", 0, -35); }
                 if (d.status === 'HIT_LOG') { ctx.font = "20px Arial"; ctx.fillText("💢", 0, -35); }
 
-                ctx.shadowColor = "rgba(0,0,0,0.2)"; ctx.shadowBlur = 4; ctx.shadowOffsetY = 2;
+                // Body
+                ctx.shadowBlur = 4;
                 ctx.fillStyle = (d.status === 'ZAPPED') ? "#212121" : "#ffeb3b";
-                if (d.status === 'SHOCKED') ctx.fillStyle = "#fff59d";
-                ctx.beginPath(); ctx.ellipse(0, 5, 22, 14, 0, 0, Math.PI * 2); ctx.arc(10, -10, 15, 0, Math.PI * 2); ctx.moveTo(-10, 0); ctx.lineTo(-30, -8); ctx.lineTo(-20, 8); ctx.fill();
-                ctx.shadowBlur = 0; ctx.shadowOffsetY = 0; ctx.lineWidth = 1.5; ctx.strokeStyle = "#f57f17"; ctx.stroke();
+                ctx.beginPath();
+                ctx.ellipse(0, 5, 22, 14, 0, 0, Math.PI * 2);
+                ctx.arc(10, -10, 15, 0, Math.PI * 2);
+                ctx.moveTo(-10, 0);
+                ctx.lineTo(-30, -8);
+                ctx.lineTo(-20, 8);
+                ctx.fill();
+
+                // Outline
+                ctx.shadowBlur = 0;
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = "#f57f17";
+                ctx.stroke();
+
+                // Wing
                 ctx.fillStyle = (d.status === 'ZAPPED') ? "#424242" : "#fbc02d";
-                ctx.beginPath(); ctx.ellipse(-5, 5, 12, 7, 0.2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-                ctx.fillStyle = "#ff6f00"; ctx.beginPath(); ctx.moveTo(22, -8); ctx.quadraticCurveTo(35, -12, 35, -5); ctx.quadraticCurveTo(30, -2, 22, -5); ctx.fill(); ctx.stroke();
-                ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(14, -12, 5, 0, Math.PI * 2); ctx.fill();
-                ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(15, -12, 2, 0, Math.PI * 2); ctx.fill();
-                if (d.hat) { ctx.fillStyle = d.hat; ctx.lineWidth = 1; ctx.strokeStyle = "black"; ctx.beginPath(); ctx.rect(6, -30, 10, 8); ctx.rect(2, -22, 18, 4); ctx.fill(); ctx.stroke(); }
-                ctx.fillStyle = "white"; ctx.fillRect(-18, 2, 20, 16); ctx.strokeRect(-18, 2, 20, 16);
-                ctx.fillStyle = "black"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(d.id, -8, 10);
+                ctx.beginPath();
+                ctx.ellipse(-5, 5, 12, 7, 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Beak
+                ctx.fillStyle = "#ff6f00";
+                ctx.beginPath();
+                ctx.moveTo(22, -8);
+                ctx.quadraticCurveTo(35, -12, 35, -5);
+                ctx.quadraticCurveTo(30, -2, 22, -5);
+                ctx.fill();
+                ctx.stroke();
+
+                // Eye
+                ctx.fillStyle = "white";
+                ctx.beginPath();
+                ctx.arc(14, -12, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "black";
+                ctx.beginPath();
+                ctx.arc(15, -12, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Hat
+                if (d.hat) {
+                    ctx.fillStyle = d.hat;
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = "black";
+                    ctx.beginPath();
+                    ctx.rect(6, -30, 10, 8);
+                    ctx.rect(2, -22, 18, 4);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+
+                // Bib
+                ctx.fillStyle = "white";
+                ctx.fillRect(-18, 2, 20, 16);
+                ctx.strokeRect(-18, 2, 20, 16);
+                ctx.fillStyle = "black";
+                ctx.font = "bold 11px Arial";
+                ctx.fillText(d.id, -8, 10);
+
                 ctx.restore();
             });
         }
