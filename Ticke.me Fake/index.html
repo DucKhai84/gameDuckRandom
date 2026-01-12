@@ -1008,89 +1008,299 @@
 
         /* --- WINNER POPUP STYLES (STYLE GUIDE) --- */
         /* Thiết lập nền Popup về màu trắng */
+        /* Main Popup Container with Tết Theme */
         div:where(.swal2-container) div:where(.swal2-popup) {
-            background: #ffffff !important;
-            border-radius: 20px !important;
+            background: linear-gradient(180deg, #fff5f5 0%, #ffffff 100%) !important;
+            border-radius: 30px !important;
             padding: 0 !important;
+            border: 5px solid #ff6b6b !important;
+            box-shadow: 0 20px 60px rgba(255, 107, 107, 0.4),
+                0 0 0 10px rgba(255, 215, 0, 0.2),
+                0 0 40px rgba(255, 107, 107, 0.3) !important;
+            position: relative;
+            overflow: visible !important;
         }
 
-        /* Icon Checkmark/Trophy lớn */
-        .checkmark-icon {
-            width: 80px;
-            height: 80px;
-            color: #d63031;
-            /* Màu đỏ */
-            margin-bottom: 10px;
-            font-size: 80px;
-            display: inline-block;
+        /* Decorative Lanterns */
+        div:where(.swal2-container) div:where(.swal2-popup)::before,
+        div:where(.swal2-container) div:where(.swal2-popup)::after {
+            content: '🏮';
+            position: absolute;
+            top: -25px;
+            font-size: 50px;
+            animation: swing 3s ease-in-out infinite;
         }
 
-        /* Khung hiển thị người thắng */
-        .winner-box {
-            border: 2px solid #d63031;
-            background-color: rgba(214, 48, 49, 0.1);
-            /* Màu đỏ nhạt 10% */
-            color: #d63031;
-            font-size: 28px;
-            font-weight: bold;
-            border-radius: 16px;
-            padding: 15px 20px;
-            margin: 20px auto;
-            /* Auto margin để căn giữa */
-            box-shadow: 0 4px 15px rgba(214, 48, 49, 0.2);
-            width: fit-content;
-            min-width: 60%;
-            text-align: center;
+        div:where(.swal2-container) div:where(.swal2-popup)::before {
+            left: 30px;
         }
 
-        /* Nút bấm (Custom Button cho SweetAlert2) */
-        .btn-awesome {
-            background-color: #7100d1 !important;
-            /* Màu tím - Override style gốc */
-            color: #ffffff !important;
-            padding: 12px 40px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(113, 0, 209, 0.3);
-            transition: transform 0.2s;
-            outline: none !important;
+        div:where(.swal2-container) div:where(.swal2-popup)::after {
+            right: 30px;
+            animation-delay: 0.5s;
         }
 
-        .btn-awesome:hover {
-            transform: scale(1.05);
-            background-color: #5e00b0 !important;
+        @keyframes swing {
+
+            0%,
+            100% {
+                transform: rotate(-5deg);
+            }
+
+            50% {
+                transform: rotate(5deg);
+            }
         }
 
-        /* Helper styles for content */
+        /* Confetti Background */
         .popup-content-wrapper {
-            padding: 30px 20px;
+            padding: 40px 30px 30px;
             text-align: center;
+            background-image:
+                radial-gradient(circle, #ffd700 2px, transparent 2px),
+                radial-gradient(circle, #ff6b6b 2px, transparent 2px),
+                radial-gradient(circle, #4ecdc4 2px, transparent 2px);
+            background-size: 50px 50px, 80px 80px, 60px 60px;
+            background-position: 0 0, 40px 40px, 20px 20px;
+            background-repeat: repeat;
+            opacity: 0.95;
+            border-radius: 25px;
         }
 
+        /* Trophy Icon with Glow */
+        .checkmark-icon {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 15px;
+            font-size: 100px;
+            display: inline-block;
+            animation: bounce 0.8s ease-in-out, glow 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(-20px) scale(1.1);
+            }
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 35px rgba(255, 215, 0, 1));
+            }
+        }
+
+        /* Winner Box - Tết Style */
+        .winner-box {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 700;
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin: 25px auto;
+            box-shadow: 0 8px 25px rgba(238, 90, 111, 0.5),
+                inset 0 2px 0 rgba(255, 255, 255, 0.3);
+            width: fit-content;
+            min-width: 65%;
+            text-align: center;
+            border: 3px solid #ffd700;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .winner-box::before {
+            content: '✨';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 28px;
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+
+        .winner-box::after {
+            content: '✨';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 28px;
+            animation: sparkle 1.5s ease-in-out infinite;
+            animation-delay: 0.75s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.03);
+            }
+        }
+
+        @keyframes sparkle {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: translateY(-50%) scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: translateY(-50%) scale(1.2);
+            }
+        }
+
+        /* Prize Info Container */
         .prize-info-container {
-            margin-top: 15px;
+            margin-top: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px dashed #ffd700;
         }
 
         .prize-name-display {
-            font-size: 20px;
-            color: #333;
+            font-size: 24px;
+            color: #2d3436;
             font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(90deg, #ff6b6b, #ffd700, #ff6b6b);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-shift 3s ease infinite;
+        }
+
+        @keyframes gradient-shift {
+
+            0%,
+            100% {
+                background-position: 0% center;
+            }
+
+            50% {
+                background-position: 100% center;
+            }
         }
 
         .prize-image-display {
-            max-width: 250px;
-            max-height: 200px;
+            max-width: 280px;
+            max-height: 220px;
             width: 100%;
             object-fit: contain;
-            border-radius: 10px;
+            border-radius: 15px;
+            border: 4px solid #ffd700;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            background: white;
+            padding: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .prize-image-display:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        /* Custom Button - Year End Party Style */
+        .btn-awesome {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: #ffffff !important;
+            padding: 15px 50px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4),
+                0 0 0 4px rgba(255, 215, 0, 0.3);
+            transition: all 0.3s ease;
+            outline: none !important;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-awesome::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-awesome:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-awesome:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.6),
+                0 0 0 6px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-awesome:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        /* Celebration Message */
+        .celebration-text {
+            font-size: 18px;
+            color: #636e72;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        /* Demo Button */
+        .demo-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 20px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(238, 90, 111, 0.4);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(238, 90, 111, 0.6);
         }
     </style>
 </head>
@@ -1308,61 +1518,76 @@
         });
 
         function showWinnerPopup(winnerName, prizeObject) {
-            // --- Optimized Confetti Logic ---
-            const duration = 10000; // 10 giây
+            const duration = 10000;
             const end = Date.now() + duration;
 
-            // Bắn pháo hoa ngay lập tức
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
-            // Loop bắn nhỏ giọt để duy trì không khí
             const interval = setInterval(function () {
                 if (Date.now() > end) {
                     return clearInterval(interval);
                 }
-
-                confetti({
-                    particleCount: 50,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 }
-                });
-                confetti({
-                    particleCount: 50,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 }
-                });
-            }, 2000); // Mỗi 2 giây bắn 1 lần
+                confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1 } });
+            }, 2000);
 
             return Swal.fire({
                 html: `
-                    <div class="popup-content-wrapper">
-                        <i class="fa-solid fa-trophy checkmark-icon"></i>
-                        <h2 style="color: #d63031; font-size: 32px; margin: 0 0 10px 0; font-weight: 900; text-transform: uppercase;">CHÚC MỪNG</h2>
-                        
-                        <div class="winner-box">
-                            ${winnerName}
-                        </div>
-                        
-                        <div class="prize-info-container">
-                            <div class="prize-name-display">${prizeObject.name || 'Giải Thưởng'} - ${prizeObject.item || 'Phần quà may mắn'}</div>
-                            ${prizeObject.image ? `<img src="${prizeObject.image}" class="prize-image-display" alt="Prize Image">` : ''}
-                        </div>
+            <div class="popup-content-wrapper">
+                <div class="ribbon-decor ribbon-left"></div>
+                <div class="ribbon-decor ribbon-right"></div>
+                
+                <div class="animate__animated animate__tada">
+                    <i class="fa-solid fa-trophy checkmark-icon"></i>
+                </div>
+                
+                <h2 class="animate__animated animate__backInDown animate__delay-1s" 
+                    style="color: #d63031; font-size: 32px; margin: 0 0 10px 0; font-weight: 900; text-transform: uppercase;">
+                    CHÚC MỪNG
+                </h2>
+                
+                <div class="winner-box animate__animated animate__zoomIn animate__delay-1s" style="animation-delay: 0.8s;">
+                    ${winnerName}
+                </div>
+                
+                <div class="prize-info-container animate__animated animate__fadeInUp animate__delay-2s" style="animation-delay: 1.2s;">
+                    <div class="prize-name-display">${prizeObject.name || 'Giải Thưởng'} - ${prizeObject.item || 'Phần quà may mắn'}</div>
+                    ${prizeObject.image ? `
+                    <div class="prize-glow-circle">
+                        <img src="${prizeObject.image}" class="prize-image-display" alt="Prize Image">
                     </div>
-                `,
+                    ` : ''}
+                </div>
+            </div>
+        `,
                 showConfirmButton: true,
-                confirmButtonText: 'NHẬN QUÀ NGAY',
+                confirmButtonText: 'Đóng',
                 buttonsStyling: false,
+
+                // --- SỬA LỖI TẠI ĐÂY ---
+                // 1. Tách animation ra khỏi customClass
                 customClass: {
-                    confirmButton: 'btn-awesome',
-                    popup: 'animate__animated animate__fadeInDown'
+                    confirmButton: 'btn-awesome btn-pulse',
+                    // popup: '...' -> XÓA DÒNG NÀY (Không để animation ở đây)
                 },
-                backdrop: `rgba(0,0,0,0.6)`,
-                width: '600px'
-            }).then(() => {
-                // Dọn dẹp interval nếu người dùng đóng popup sớm
-                clearInterval(interval);
+
+                // 2. Cấu hình hiệu ứng hiện ra riêng
+                showClass: {
+                    popup: 'animate__animated animate__zoomIn'
+                },
+
+                // 3. Cấu hình hiệu ứng biến mất riêng (Quan trọng để đóng popup mượt mà)
+                hideClass: {
+                    popup: 'animate__animated animate__zoomOut'
+                },
+                // -----------------------
+
+                backdrop: `rgba(0,0,0,0.7)`,
+                width: '650px',
+                padding: '0',
+                willClose: () => {
+                    clearInterval(interval);
+                }
             });
         }
 

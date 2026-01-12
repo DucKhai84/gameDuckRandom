@@ -439,9 +439,6 @@
         </div>
 
         <div class="slots-container">
-            <div class="number-ball" id="ball-1">0</div>
-            <div class="number-ball" id="ball-2">0</div>
-            <div class="number-ball" id="ball-3">0</div>
             <div class="number-ball" id="ball-4">0</div>
             <div class="number-ball" id="ball-5">0</div>
             <div class="number-ball" id="ball-6">0</div>
@@ -638,7 +635,10 @@
 
         // --- CORE LOGIC ---
         function startSpin() {
-            // Tải lại dữ liệu mới nhất (để đồng bộ nếu có tab khác đang quay)
+            // 1. CẤU HÌNH SỐ LƯỢNG BÓNG
+            const BALL_COUNT = 3; // <--- SỬA THÀNH 3
+
+            // Tải lại dữ liệu mới nhất
             const storedPrizes = localStorage.getItem('lucky_draw_prizes');
             if (storedPrizes) prizes = JSON.parse(storedPrizes);
 
@@ -649,11 +649,11 @@
             const prize = prizes[currentPrizeIndex];
             if (prize.quantity <= 0) {
                 alert("Giải thưởng này đã hết! Hệ thống sẽ tải lại danh sách.");
-                loadDataFromSystem(); // Reload để tìm giải tiếp theo
+                loadDataFromSystem();
                 return;
             }
 
-            // Lọc người chơi (Ở đây cho phép trúng nhiều lần nên dùng toàn bộ danh sách)
+            // Lọc người chơi
             const availableParticipants = participants;
             if (availableParticipants.length === 0) { alert("Hết người tham gia!"); return; }
 
@@ -667,20 +667,40 @@
             const winnerIndex = Math.floor(Math.random() * availableParticipants.length);
             currentWinner = availableParticipants[winnerIndex];
 
-            // Xử lý STT
-            let targetStt = currentWinner.stt || "000000";
+            // --- XỬ LÝ STT CHO 3 BÓNG ---
+            // Mặc định là "000" nếu không có stt
+            let targetStt = currentWinner.stt || "000";
+
+            // Chỉ giữ lại số
             targetStt = targetStt.replace(/[^0-9]/g, '');
-            if (targetStt.length > BALL_COUNT) targetStt = targetStt.slice(-BALL_COUNT);
-            if (targetStt.length < BALL_COUNT) targetStt = targetStt.padStart(BALL_COUNT, '0');
+
+            // Cắt chuỗi: Nếu dài hơn 3 số thì lấy 3 số cuối (ví dụ: 12345 -> 345)
+            if (targetStt.length > BALL_COUNT) {
+                targetStt = targetStt.slice(-BALL_COUNT);
+            }
+
+            // Bù số 0: Nếu ngắn hơn 3 số thì thêm 0 vào đầu (ví dụ: 5 -> 005)
+            if (targetStt.length < BALL_COUNT) {
+                targetStt = targetStt.padStart(BALL_COUNT, '0');
+            }
 
             const targetDigits = targetStt.split('');
 
             // --- ANIMATION ---
+            // Đảm bảo biến 'balls' (DOM elements) cũng phải có đúng 3 phần tử
+            if (balls.length !== BALL_COUNT) {
+                console.warn("Cảnh báo: Số lượng phần tử HTML .ball không khớp với BALL_COUNT = 3");
+            }
+
             const intervals = [];
             balls.forEach((ball, idx) => {
+                // Chỉ chạy animation cho đúng số lượng bóng cần thiết
+                if (idx >= BALL_COUNT) return;
+
                 delete ball.dataset.locked;
                 ball.style.transform = "scale(1)";
                 ball.style.color = "#fff";
+
                 const interval = setInterval(() => {
                     ball.innerText = Math.floor(Math.random() * 10);
                 }, 50);
@@ -688,16 +708,23 @@
             });
 
             let delay = 1000;
+
+            // Loop qua targetDigits (đã chắc chắn có 3 phần tử)
             targetDigits.forEach((digit, index) => {
                 setTimeout(() => {
-                    clearInterval(intervals[index]);
-                    balls[index].innerText = digit;
-                    balls[index].dataset.locked = "true";
-                    balls[index].style.transform = "scale(1.3)";
-                    balls[index].style.color = "#FFD700";
-                    balls[index].style.textShadow = "0 0 15px rgba(255, 215, 0, 0.8)";
-                    setTimeout(() => { balls[index].style.transform = "scale(1)"; }, 200);
+                    // Dừng quay tại bóng tương ứng
+                    if (intervals[index]) clearInterval(intervals[index]);
 
+                    if (balls[index]) {
+                        balls[index].innerText = digit;
+                        balls[index].dataset.locked = "true";
+                        balls[index].style.transform = "scale(1.3)";
+                        balls[index].style.color = "#FFD700";
+                        balls[index].style.textShadow = "0 0 15px rgba(255, 215, 0, 0.8)";
+                        setTimeout(() => { balls[index].style.transform = "scale(1)"; }, 200);
+                    }
+
+                    // Kết thúc ở bóng cuối cùng (index = 2)
                     if (index === BALL_COUNT - 1) {
                         setTimeout(showGiftBox, 800);
                     }
