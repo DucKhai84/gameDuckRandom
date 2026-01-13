@@ -800,6 +800,13 @@
 
             <div class="settings-form">
                 <div class="input-group">
+                    <label>CHỌN QUÀ</label>
+                    <select id="inp-prize"
+                        style="width: 120px; padding: 5px; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0, 0, 0, 0.4); color: var(--tet-gold); font-weight: bold;">
+                        <option value="-1">---</option>
+                    </select>
+                </div>
+                <div class="input-group">
                     <label>SỐ VỊT</label>
                     <input type="number" id="inp-qty" value="30" min="2" max="500">
                 </div>
@@ -897,30 +904,58 @@
 
         // --- INITIALIZATION ---
         window.addEventListener('DOMContentLoaded', () => {
-            loadCurrentPrize();
+            loadPrizesAndPopulateDropdown();
             requestAnimationFrame(loop);
         });
 
-        function loadCurrentPrize() {
+        function loadPrizesAndPopulateDropdown() {
             const storedPrizes = localStorage.getItem('lucky_draw_prizes');
+            const prizeSelect = document.getElementById('inp-prize');
+            prizeSelect.innerHTML = ""; // Clear existing options
+
             if (storedPrizes) {
                 prizes = JSON.parse(storedPrizes);
+
+                // Populate Dropdown
+                prizes.forEach((p, index) => {
+                    let option = document.createElement('option');
+                    option.value = index;
+                    option.text = `${p.name} (${p.quantity})`;
+                    if (p.quantity <= 0) option.disabled = true;
+                    prizeSelect.appendChild(option);
+                });
+
+                // Select first available prize
                 currentPrizeIndex = prizes.findIndex(p => p.quantity > 0);
+                if (currentPrizeIndex !== -1) {
+                    prizeSelect.value = currentPrizeIndex;
+                }
+
                 updatePrizeUI();
             }
+
+            // Add Event Listener for Dropdown Change
+            prizeSelect.addEventListener('change', (e) => {
+                currentPrizeIndex = parseInt(e.target.value);
+                updatePrizeUI();
+            });
         }
 
         function updatePrizeUI() {
             const nameEl = document.getElementById('prize-name');
             const countEl = document.getElementById('prize-count');
             const startBtn = document.getElementById('btn-start');
+            const prizeSelect = document.getElementById('inp-prize');
 
-            if (currentPrizeIndex !== -1) {
+            if (currentPrizeIndex !== -1 && prizes[currentPrizeIndex]) {
                 const p = prizes[currentPrizeIndex];
                 nameEl.innerText = p.name;
                 countEl.innerText = `Còn lại: ${p.quantity}`;
                 startBtn.style.opacity = "1";
                 startBtn.style.pointerEvents = "auto";
+
+                // Sync dropdown if changed externally (though mainly internal)
+                prizeSelect.value = currentPrizeIndex;
             } else {
                 nameEl.innerText = "HẾT QUÀ";
                 countEl.innerText = "Vui lòng nạp thêm";
@@ -998,8 +1033,15 @@
 
         // --- MAIN FUNCTIONS ---
         function startGame() {
-            loadCurrentPrize();
-            if (currentPrizeIndex === -1) { alert("Đã hết giải thưởng!"); return; }
+            // Reload prizes to ensure fresh data
+            const storedPrizes = localStorage.getItem('lucky_draw_prizes');
+            if (storedPrizes) prizes = JSON.parse(storedPrizes);
+
+            // Get selected prize from dropdown
+            const prizeSelect = document.getElementById('inp-prize');
+            currentPrizeIndex = parseInt(prizeSelect.value);
+
+            if (currentPrizeIndex === -1 || !prizes[currentPrizeIndex]) { alert("Vui lòng chọn giải thưởng!"); return; }
             if (prizes[currentPrizeIndex].quantity <= 0) { alert("Giải này đã hết!"); updatePrizeUI(); return; }
             if (isRacing) return;
 
@@ -1082,65 +1124,76 @@
             // Find Top 5
             let sortedDucks = [...ducks].sort((a, b) => a.rank - b.rank); // Rank 1 is smallest
             let top5 = sortedDucks.slice(0, 5);
-            let winner = top5[0]; // Rank 1
 
-            if (winner) {
-                // UI Update
-                document.getElementById('winner-screen').style.display = 'flex';
+            // UI Update
+            document.getElementById('winner-screen').style.display = 'flex';
 
-                // Prize Logic (Only for Rank 1)
-                let prizeName = "Vô Địch";
-                let prizeItem = "";
-                if (currentPrizeIndex !== -1) {
-                    const p = prizes[currentPrizeIndex];
-                    prizeName = p.name;
-                    prizeItem = p.item;
-                    prizes[currentPrizeIndex].quantity--;
-                    localStorage.setItem('lucky_draw_prizes', JSON.stringify(prizes));
-                    updatePrizeUI();
-                }
+            let prizeName = "Vô Địch";
+            let prizeItem = "";
+            let prizesToAward = 0;
 
-                // Render Top 5 Grid
-                let listHtml = "";
-                top5.forEach((d, index) => {
-                    let rank = index + 1;
-                    let rankClass = `rank-${rank}`;
-                    let pName = index === 0 ? prizeName : "---";
+            if (currentPrizeIndex !== -1 && prizes[currentPrizeIndex]) {
+                const p = prizes[currentPrizeIndex];
+                prizeName = p.name;
+                prizeItem = p.item;
 
-                    // Create Canvas ID
-                    let canvasId = `win-canvas-${d.id}`;
+                // Determine how many prizes we can give (max 5, or limited by quantity)
+                prizesToAward = Math.min(5, p.quantity);
 
-                    listHtml += `
-                        <div class="winner-box ${rankClass}">
-                            <div class="w-rank-badge">#${rank}</div>
-                            <canvas id="${canvasId}" width="150" height="120"></canvas>
-                            <div class="w-name-tag">Vịt #${d.id}</div>
-                            <div class="w-prize-tag">${pName}</div>
-                        </div>
-                    `;
-                });
-                document.getElementById('top-5-container').innerHTML = listHtml;
-
-                // Draw Avatars after HTML injection
-                top5.forEach(d => {
-                    let canvasId = `win-canvas-${d.id}`;
-                    drawDuckAvatar(canvasId, d);
-                });
-
-                // Effects
-                confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
-
-                // Save History (Only Winner)
-                let winners = JSON.parse(localStorage.getItem('lucky_draw_winners') || '[]');
-                winners.push({
-                    name: "Vịt #" + winner.id,
-                    prize: prizeName,
-                    prizeItem: prizeItem,
-                    timestamp: Date.now(),
-                    gameType: "Đua Vịt Tet V2"
-                });
-                localStorage.setItem('lucky_draw_winners', JSON.stringify(winners));
+                // Deduct quantity
+                prizes[currentPrizeIndex].quantity -= prizesToAward;
+                localStorage.setItem('lucky_draw_prizes', JSON.stringify(prizes));
+                updatePrizeUI();
             }
+
+            // Render Top 5 Grid
+            let listHtml = "";
+            let winnersHistory = JSON.parse(localStorage.getItem('lucky_draw_winners') || '[]');
+
+            top5.forEach((d, index) => {
+                let rank = index + 1;
+                let rankClass = `rank-${rank}`;
+
+                // Determine if this duck gets a prize
+                let hasPrize = index < prizesToAward;
+                let pName = hasPrize ? prizeName : "---";
+
+                // Create Canvas ID
+                let canvasId = `win-canvas-${d.id}`;
+
+                listHtml += `
+                    <div class="winner-box ${rankClass}">
+                        <div class="w-rank-badge">#${rank}</div>
+                        <canvas id="${canvasId}" width="150" height="120"></canvas>
+                        <div class="w-name-tag">Vịt #${d.id}</div>
+                        <div class="w-prize-tag">${pName}</div>
+                    </div>
+                `;
+
+                // Save History if they got a prize
+                if (hasPrize) {
+                    winnersHistory.push({
+                        name: "Vịt #" + d.id,
+                        prize: prizeName,
+                        prizeItem: prizeItem,
+                        timestamp: Date.now(),
+                        gameType: "Đua Vịt Tet V2"
+                    });
+                }
+            });
+
+            localStorage.setItem('lucky_draw_winners', JSON.stringify(winnersHistory));
+
+            document.getElementById('top-5-container').innerHTML = listHtml;
+
+            // Draw Avatars after HTML injection
+            top5.forEach(d => {
+                let canvasId = `win-canvas-${d.id}`;
+                drawDuckAvatar(canvasId, d);
+            });
+
+            // Effects
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
         }
 
         // --- RENDERING ---
