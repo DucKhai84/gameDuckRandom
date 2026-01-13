@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lucky Draw Pro - Random</title>
     <link
-        href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&family=Playfair+Display:ital,wght@1,700&family=Anton&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;700&family=Playfair+Display:ital,wght@1,700&family=Anton&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -353,72 +353,70 @@
             }
         }
 
-        /* --- MODAL HỘP QUÀ --- */
+        /* --- MINIMALIST GIFT OVERLAY --- */
         .gift-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.92);
+            background: rgba(0, 0, 0, 0.85);
+            /* Dark semi-transparent */
+            backdrop-filter: blur(10px);
+            /* Blur effect */
             z-index: 999;
             display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            gap: 40px;
+            /* Spacing between image and text */
         }
 
         .gift-image {
-            max-width: 500px;
+            max-width: 600px;
             max-height: 500px;
             width: auto;
             height: auto;
-            cursor: pointer;
-            filter: drop-shadow(0 0 60px rgba(255, 215, 0, 0.4));
-            animation: floatUp 0.8s ease-out forwards, bounce 2s infinite ease-in-out 1s;
             object-fit: contain;
+            /* Soft Drop Shadow for 3D effect */
+            filter: drop-shadow(0 20px 50px rgba(0, 0, 0, 0.5));
+            /* Entrance Animation */
+            animation: slideUpFade 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(50px);
         }
 
         .gift-text {
-            color: #FFD700;
-            font-size: 2.5rem;
-            margin-top: 40px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            font-family: 'Anton', sans-serif;
-            animation: fadeIn 2s ease;
-            text-shadow: 0 4px 10px rgba(0, 0, 0, 1);
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 300;
+            /* Light weight */
+            font-size: 2rem;
+            color: #ffffff;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            /* Entrance Animation */
+            animation: fadeIn 1s ease-out 0.3s forwards;
+            opacity: 0;
         }
 
-        @keyframes floatUp {
-            from {
-                transform: translateY(100vh) scale(0.5);
-                opacity: 0;
-            }
+        .gift-icon {
+            width: 32px;
+            height: 32px;
+            fill: #fff;
+            opacity: 0.8;
+        }
 
+        @keyframes slideUpFade {
             to {
-                transform: translateY(0) scale(1);
                 opacity: 1;
-            }
-        }
-
-        @keyframes bounce {
-
-            0%,
-            100% {
                 transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-20px);
             }
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
             to {
                 opacity: 1;
             }
@@ -480,9 +478,17 @@
         </div>
     </div>
 
+    <!-- MINIMALIST GIFT OVERLAY -->
     <div class="gift-overlay" id="giftOverlay" onclick="closeGiftOverlay()">
         <img src="" alt="Gift" class="gift-image" id="giftImageElem">
-        <div class="gift-text">CHẠM ĐỂ MỞ QUÀ!</div>
+        <div class="gift-text">
+            <!-- Simple Hand Icon SVG -->
+            <svg class="gift-icon" viewBox="0 0 24 24">
+                <path
+                    d="M9 11.24V7.5C9 6.12 10.12 5 11.5 5S14 6.12 14 7.5v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zM18 1H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h13c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 16H5V3h13v14z" />
+            </svg>
+            CHẠM ĐỂ MỞ QUÀ
+        </div>
     </div>
 
     <script>
@@ -528,6 +534,8 @@
             winnerItem: document.getElementById('winner-prize-item'),
             prizePreviewImg: document.getElementById('prizePreviewImg'),
             spinBtn: document.getElementById('spinBtn'),
+
+            // Overlay Elements
             giftOverlay: document.getElementById('giftOverlay'),
             giftImage: document.getElementById('giftImageElem')
         };
@@ -739,7 +747,7 @@
             });
             localStorage.setItem(CONFIG.STORAGE_KEYS.WINNERS, JSON.stringify(winners));
 
-            // 3. Show Gift Overlay
+            // 3. Show Gift Overlay (Minimalist)
             const imgSrc = (prize.image && prize.image.length > 5) ? prize.image : CONFIG.DEFAULT_GIFT_IMG;
             elements.giftImage.src = imgSrc;
             elements.giftOverlay.style.display = 'flex';

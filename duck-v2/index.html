@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Duck Race: Tet Edition (V2)</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Anton&display=swap"
+        rel="stylesheet">
+    <style>
+        /* --- 1. GLOBAL VISUAL STYLE & LAYOUT --- */
+        :root {
+            --tet-red: #D32F2F;
+            --tet-gold: #FFD700;
+            --tet-yellow: #FFEB3B;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-light: #ffffff;
+            --text-dim: #dddddd;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Roboto Condensed', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            /* Fallback */
+        }
+
+        /* Background: Full-screen festive Tet background */
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("../Ticke.me Fake/bg-y1.png");
+            background-position: 50%;
+            background-repeat: repeat;
+            z-index: -1;
+        }
+
+        /* Lớp phủ màu tím lên trên ảnh nền */
+        .bg-image::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 107, 107, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(241, 196, 15, 0.2) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(113, 0, 209, 0.15) 0%, rgba(188, 86, 252, 0.25) 100%);
+            z-index: 0;
+            pointer-events: none;
+            animation: gradientShift 10s ease infinite;
+        }
+
+        @keyframes gradientShift {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            /* Dark semi-transparent overlay */
+            z-index: -1;
+        }
+
+
+        /* --- CLOUDS ANIMATION --- */
+        .clouds-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        /* --- DECORATION --- */
+        .decor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .decor-item {
+            position: absolute;
+        }
+
+        .decor-lanterns {
+            top: 60px;
+            right: 50px;
+            width: 150px;
+            animation: swing 3s ease-in-out infinite alternate;
+            transform-origin: top center;
+        }
+
+        @keyframes swing {
+            0% {
+                transform: rotate(-5deg);
+            }
+
+            100% {
+                transform: rotate(5deg);
+            }
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 100px;
+            filter: blur(20px);
+            animation: floatCloud linear infinite;
+        }
+
+        .cloud::after,
+        .cloud::before {
+            content: '';
+            position: absolute;
+            background: inherit;
+            border-radius: 50%;
+        }
+
+        .cloud::after {
+            width: 100px;
+            height: 100px;
+            top: -50px;
+            left: 50px;
+        }
+
+        .cloud::before {
+            width: 120px;
+            height: 120px;
+            top: -70px;
+            left: 130px;
+        }
+
+        .cloud-1 {
+            width: 500px;
+            height: 150px;
+            top: 10%;
+            left: -600px;
+            animation-duration: 60s;
+            opacity: 0.6;
+        }
+
+        .cloud-2 {
+            width: 600px;
+            height: 180px;
+            top: 25%;
+            left: -700px;
+            animation-duration: 80s;
+            animation-delay: 10s;
+            opacity: 0.4;
+            transform: scale(1.2);
+        }
+
+        .cloud-3 {
+            width: 400px;
+            height: 120px;
+            top: 5%;
+            left: -500px;
+            animation-duration: 50s;
+            animation-delay: 25s;
+            opacity: 0.5;
+        }
+
+        .cloud-4 {
+            width: 550px;
+            height: 160px;
+            top: 15%;
+            left: -600px;
+            animation-duration: 70s;
+            animation-delay: 5s;
+            opacity: 0.3;
+            transform: scale(0.9);
+        }
+
+        @keyframes floatCloud {
+            0% {
+                left: -800px;
+            }
+
+            100% {
+                left: 100%;
+            }
+        }
+
+        /* Main Container: Glassmorphism */
+        .main-game-container {
+            width: 95%;
+            max-width: 1400px;
+            height: 90vh;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --- 2. COMPONENT DETAILS --- */
+
+        /* A. Left Panel - Control Center */
+        .controls-panel {
+            width: 300px;
+            min-width: 300px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border-right: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-light);
+            z-index: 10;
+        }
+
+        .panel-header {
+            font-family: 'Anton', sans-serif;
+            font-size: 2rem;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, var(--tet-gold), var(--tet-red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+        }
+
+        .btn-nav {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: var(--text-dim);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Roboto Condensed', sans-serif;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+        }
+
+        .btn-nav:hover {
+            border-color: var(--tet-gold);
+            color: var(--tet-gold);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .prize-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .prize-name {
+            font-family: 'Anton', sans-serif;
+            font-size: 1.2rem;
+            color: var(--tet-gold);
+            margin-bottom: 5px;
+        }
+
+        .prize-count {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        .settings-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .input-group label {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 80px;
+            padding: 5px;
+            border-radius: 6px;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.4);
+            color: var(--tet-gold);
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .timer-display {
+            font-family: 'Courier New', monospace;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--tet-gold);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--tet-gold);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Anton', sans-serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, var(--tet-gold), #FFA000);
+            color: #b71c1c;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+        }
+
+        .btn-start:active {
+            transform: translateY(0);
+        }
+
+        .btn-reset {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-reset:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* B. Right Panel - The Race Track */
+        .game-stage {
+            flex-grow: 1;
+            position: relative;
+            background: transparent;
+            overflow: hidden;
+        }
+
+        canvas#gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Overlay Elements (HUD) */
+        .scenario-alert {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            background: rgba(211, 47, 47, 0.9);
+            color: var(--tet-gold);
+            padding: 10px 30px;
+            border-radius: 50px;
+            font-family: 'Anton', sans-serif;
+            font-size: 1.5rem;
+            border: 2px solid var(--tet-gold);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .rank-board {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 180px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            pointer-events: none;
+        }
+
+        .rank-title {
+            text-align: center;
+            color: var(--tet-gold);
+            font-family: 'Anton', sans-serif;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .rank-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            font-size: 0.95rem;
+        }
+
+        .rank-item:last-child {
+            border-bottom: none;
+        }
+
+        .rank-1 {
+            color: var(--tet-gold);
+            font-weight: bold;
+        }
+
+        /* C. Winner Overlay (Modal) */
+        .winner-overlay {
+            display: none;
+            /* Flex when active */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .winner-card {
+            background: linear-gradient(135deg, #ffffff, #f0f0f0);
+            padding: 40px;
+            border-radius: 24px;
+            text-align: center;
+            border: 4px solid var(--tet-gold);
+            box-shadow: 0 0 80px rgba(255, 215, 0, 0.5);
+            animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 450px;
+            width: 90%;
+            position: relative;
+        }
+
+        .winner-icon {
+            font-size: 60px;
+            margin-bottom: 10px;
+            animation: bounce 2s infinite;
+            display: block;
+        }
+
+        .winner-title {
+            font-family: 'Anton', sans-serif;
+            font-size: 2.5rem;
+            color: var(--tet-red);
+            margin: 0;
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        .winner-name {
+            font-family: 'Anton', sans-serif;
+            font-size: 3.5rem;
+            color: var(--tet-gold);
+            text-shadow: 3px 3px 0 var(--tet-red);
+            margin: 15px 0;
+        }
+
+        canvas#win-canvas {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            margin: 10px 0;
+        }
+
+        @keyframes popUp {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-20px);
+            }
+
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+
+        /* --- NEW SKY & CLOUD STYLES (Scoped to .game-stage) --- */
+
+        /* Apply Sky Gradient to Game Stage Background */
+        .game-stage {
+            background: linear-gradient(180deg, #87CEEB 0%, #B0E0E6 100%);
+            position: relative;
+            /* Ensure absolute children are relative to this */
+            overflow: hidden;
+        }
+
+        /* Scope Clouds to Game Stage */
+        .game-stage .clouds-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        /* Ensure Canvas is above clouds */
+        .game-stage canvas#gameCanvas {
+            position: relative;
+            z-index: 1;
+        }
+
+
+
+        .bg-overlay {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Cloud Styles (Scoped) */
+        .game-stage .cloud {
+            position: absolute;
+            background: #FFFFFF;
+            border-radius: 100px;
+            animation: moveLeft linear infinite;
+            filter: none;
+        }
+
+        .game-stage .cloud::after,
+        .game-stage .cloud::before {
+            content: '';
+            position: absolute;
+            background: inherit;
+            border-radius: 50%;
+        }
+
+        /* Cloud 1 */
+        .game-stage .cloud-1 {
+            width: 300px;
+            height: 100px;
+            top: 15%;
+            opacity: 0.9;
+            animation-duration: 35s;
+            z-index: 3;
+        }
+
+        .game-stage .cloud-1::after {
+            width: 100px;
+            height: 100px;
+            top: -50px;
+            left: 50px;
+        }
+
+        .game-stage .cloud-1::before {
+            width: 120px;
+            height: 120px;
+            top: -60px;
+            left: 120px;
+        }
+
+        /* Cloud 2 */
+        .game-stage .cloud-2 {
+            width: 200px;
+            height: 80px;
+            top: 30%;
+            opacity: 0.7;
+            animation-duration: 55s;
+            animation-delay: -10s;
+            z-index: 2;
+        }
+
+        .game-stage .cloud-2::after {
+            width: 70px;
+            height: 70px;
+            top: -35px;
+            left: 30px;
+        }
+
+        .game-stage .cloud-2::before {
+            width: 90px;
+            height: 90px;
+            top: -45px;
+            left: 80px;
+        }
+
+        /* Cloud 3 */
+        .game-stage .cloud-3 {
+            width: 400px;
+            height: 90px;
+            top: 5%;
+            opacity: 0.8;
+            animation-duration: 45s;
+            animation-delay: -5s;
+            z-index: 1;
+        }
+
+        .game-stage .cloud-3::after {
+            width: 80px;
+            height: 80px;
+            top: -40px;
+            left: 60px;
+        }
+
+        .game-stage .cloud-3::before {
+            width: 110px;
+            height: 110px;
+            top: -55px;
+            left: 180px;
+        }
+
+        /* Cloud 4 */
+        .game-stage .cloud-4 {
+            width: 180px;
+            height: 60px;
+            top: 20%;
+            opacity: 0.5;
+            animation-duration: 70s;
+            animation-delay: -20s;
+            z-index: 0;
+        }
+
+        .game-stage .cloud-4::after {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: 25px;
+        }
+
+        .game-stage .cloud-4::before {
+            width: 70px;
+            height: 70px;
+            top: -35px;
+            left: 70px;
+        }
+
+        @keyframes moveLeft {
+            0% {
+                left: 100%;
+            }
+
+            100% {
+                left: -500px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="bg-image"></div>
+    <div class="bg-overlay"></div>
+
+    <div class="decor-container">
+        <img src="../Ticke.me Fake/y1-logo.png" class="decor-item decor-lanterns" alt="Lồng Đèn"
+            onerror="this.style.display='none'">
+    </div>
+
+
+    <div class="main-game-container">
+        <!-- LEFT PANEL: CONTROLS -->
+        <div class="controls-panel">
+            <div class="panel-header">ĐUA VỊT</div>
+
+            <a href="../index.html" class="btn-nav">⬅ QUAY VỀ MENU</a>
+
+            <div class="prize-card">
+                <div class="prize-name" id="prize-name">ĐANG TẢI...</div>
+                <div class="prize-count" id="prize-count">---</div>
+            </div>
+
+            <div class="settings-form">
+                <div class="input-group">
+                    <label>SỐ VỊT</label>
+                    <input type="number" id="inp-qty" value="30" min="2" max="500">
+                </div>
+                <div class="input-group">
+                    <label>THỜI GIAN (s)</label>
+                    <input type="number" id="inp-time" value="30" min="10" max="600">
+                </div>
+            </div>
+
+            <div class="timer-display" id="timer">00:00.0</div>
+
+            <button class="btn-action btn-start" id="btn-start" onclick="startGame()">BẮT ĐẦU</button>
+            <button class="btn-action btn-reset" onclick="resetGame()">LÀM MỚI</button>
+        </div>
+
+        <!-- RIGHT PANEL: GAME STAGE -->
+        <div class="game-stage" id="gameStage">
+            <div class="clouds-container">
+                <div class="cloud cloud-1"></div>
+                <div class="cloud cloud-2"></div>
+                <div class="cloud cloud-3"></div>
+                <div class="cloud cloud-4"></div>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+
+            <div class="scenario-alert" id="scenario-alert">CHẾ ĐỘ: TỐC ĐỘ CAO</div>
+
+            <div class="rank-board">
+                <div class="rank-title">TOP 5 DẪN ĐẦU</div>
+                <div id="rank-list">---</div>
+            </div>
+
+            <!-- WINNER OVERLAY -->
+            <div class="winner-overlay" id="winner-screen">
+                <div class="winner-card">
+                    <span class="winner-icon">👑</span>
+                    <h2 class="winner-title">NHÀ VÔ ĐỊCH</h2>
+                    <canvas id="win-canvas" width="300" height="200"></canvas>
+                    <h1 class="winner-name" id="win-name">#1</h1>
+                    <button class="btn-action btn-start" onclick="resetGame()">CHƠI LẠI</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONSTANTS & SETUP ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameStage = document.getElementById('gameStage');
+
+        // Initial Sizing
+        let width = gameStage.offsetWidth;
+        let height = gameStage.offsetHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        window.addEventListener('resize', () => {
+            width = gameStage.offsetWidth;
+            height = gameStage.offsetHeight;
+            canvas.width = width;
+            canvas.height = height;
+            envCached = false;
+        });
+
+        // --- GAME CONFIG ---
+        const MAP_LENGTH = 8000;
+        const START_LINE = 100;
+        const FINISH_LINE = MAP_LENGTH - 400;
+        const TRACK_LENGTH = FINISH_LINE - START_LINE;
+        const HATS = ['#e53935', '#8e24aa', '#1e88e5', '#43a047', '#333', '#fbc02d', null, null, null];
+
+        // --- STATE ---
+        let ducks = [];
+        let isRacing = false;
+        let raceLogic = null;
+        let raceDuration = 30;
+        let winnerId = -1;
+        let cameraX = 0;
+        let globalTimer = 0;
+
+        // Prize System
+        let prizes = [];
+        let currentPrizeIndex = -1;
+
+        // Environment Cache
+        let envCanvas = document.createElement('canvas');
+        let envCtx = envCanvas.getContext('2d');
+        let envCached = false;
+
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadCurrentPrize();
+            requestAnimationFrame(loop);
+        });
+
+        function loadCurrentPrize() {
+            const storedPrizes = localStorage.getItem('lucky_draw_prizes');
+            if (storedPrizes) {
+                prizes = JSON.parse(storedPrizes);
+                currentPrizeIndex = prizes.findIndex(p => p.quantity > 0);
+                updatePrizeUI();
+            }
+        }
+
+        function updatePrizeUI() {
+            const nameEl = document.getElementById('prize-name');
+            const countEl = document.getElementById('prize-count');
+            const startBtn = document.getElementById('btn-start');
+
+            if (currentPrizeIndex !== -1) {
+                const p = prizes[currentPrizeIndex];
+                nameEl.innerText = p.name;
+                countEl.innerText = `Còn lại: ${p.quantity}`;
+                startBtn.style.opacity = "1";
+                startBtn.style.pointerEvents = "auto";
+            } else {
+                nameEl.innerText = "HẾT QUÀ";
+                countEl.innerText = "Vui lòng nạp thêm";
+                startBtn.style.opacity = "0.5";
+                startBtn.style.pointerEvents = "none";
+            }
+        }
+
+        // --- GAME LOGIC CLASS (Deterministic) ---
+        class RaceLogic {
+            constructor(duration, distance, ducks) {
+                this.duration = duration;
+                this.distance = distance;
+                this.ducks = ducks;
+                this.startTime = 0;
+                this.lastTime = 0;
+            }
+
+            start() {
+                this.startTime = performance.now() / 1000;
+                this.lastTime = this.startTime;
+            }
+
+            update(currentTime) {
+                let dt = currentTime - this.lastTime;
+                this.lastTime = currentTime;
+                let elapsed = currentTime - this.startTime;
+                let t = elapsed / this.duration;
+                let clampedT = Math.min(Math.max(t, 0), 1);
+
+                let baseX = clampedT * this.distance;
+
+                this.ducks.forEach(d => {
+                    // Noise & Variation Logic
+                    let frequency = 0.5 + (d.randomSeed % 10) / 10;
+                    let amplitude = this.distance * (0.005 + (d.randomSeed % 10) / 1000);
+                    let noiseX = Math.sin(elapsed * frequency + d.randomSeed) * amplitude;
+
+                    // Rank Bias
+                    let biasX = 0;
+                    let rankFactor = (this.ducks.length - d.rank) / this.ducks.length;
+                    if (d.rank === 1) biasX = (this.distance * 0.03) * (clampedT * clampedT);
+                    else if (d.rank === this.ducks.length) biasX = -(this.distance * 0.03) * (clampedT * clampedT);
+                    else biasX = (this.distance * 0.015) * (rankFactor - 0.5) * (clampedT * clampedT);
+
+                    let finalX = baseX + noiseX + biasX;
+                    if (clampedT >= 1) finalX = Math.min(finalX, this.distance);
+                    finalX = Math.max(0, finalX);
+
+                    d.x = START_LINE + finalX;
+
+                    // Physics (Y-axis) - SLOWER & SMOOTHER
+                    d.velocity += d.gravity;
+                    d.y += d.velocity;
+
+                    // AI Flap Logic (Smoother hovering)
+                    if (d.y > d.initY + 5) {
+                        d.velocity = -d.jumpStrength;
+                    }
+
+                    // Smooth Rotation Logic
+                    let targetRotation = 0;
+                    if (d.velocity < 0) {
+                        targetRotation = -10 * (Math.PI / 180); // Nose up (gentle)
+                    } else {
+                        targetRotation = 20 * (Math.PI / 180); // Nose down (gentle)
+                    }
+                    // Interpolate rotation (Lerp) for smoothness
+                    d.rotation += (targetRotation - d.rotation) * 0.05;
+                });
+
+                return t >= 1;
+            }
+        }
+
+        // --- MAIN FUNCTIONS ---
+        function startGame() {
+            loadCurrentPrize();
+            if (currentPrizeIndex === -1) { alert("Đã hết giải thưởng!"); return; }
+            if (prizes[currentPrizeIndex].quantity <= 0) { alert("Giải này đã hết!"); updatePrizeUI(); return; }
+            if (isRacing) return;
+
+            // Setup Ducks
+            ducks = [];
+            let qtyInput = document.getElementById('inp-qty');
+            let qty = parseInt(qtyInput.value);
+            if (isNaN(qty) || qty < 2) qty = 30;
+            console.log("Starting race with QTY:", qty);
+
+            let timeInput = document.getElementById('inp-time');
+            let timeSec = parseInt(timeInput.value);
+            if (isNaN(timeSec) || timeSec < 10) timeSec = 30;
+
+            raceDuration = timeSec;
+            winnerId = Math.floor(Math.random() * qty) + 1;
+
+            // Calculate Lanes
+            let availableHeight = height - 100;
+            let laneHeight = availableHeight / qty;
+
+            // Generate Ranks
+            let ranks = Array.from({ length: qty }, (_, i) => i + 1);
+            // Shuffle
+            for (let i = ranks.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [ranks[i], ranks[j]] = [ranks[j], ranks[i]];
+            }
+            // Ensure Winner gets Rank 1
+            let rank1Idx = ranks.indexOf(1);
+            let winnerIdx = winnerId - 1;
+            if (rank1Idx !== -1) {
+                ranks[rank1Idx] = ranks[winnerIdx];
+                ranks[winnerIdx] = 1;
+            }
+
+            for (let i = 0; i < qty; i++) {
+                ducks.push({
+                    id: i + 1,
+                    initY: 50 + (i * laneHeight),
+                    rank: ranks[i],
+                    randomSeed: Math.floor(Math.random() * 10000),
+                    hat: HATS[Math.floor(Math.random() * HATS.length)],
+                    x: START_LINE,
+                    y: 50 + (i * laneHeight),
+                    // Physics Props - SLOWER
+                    velocity: 0,
+                    gravity: 0.06,
+                    jumpStrength: 1.5,
+                    rotation: 0
+                });
+            }
+
+            // UI Reset
+            document.getElementById('winner-screen').style.display = 'none';
+            const alertBox = document.getElementById('scenario-alert');
+            alertBox.style.transform = "translateX(-50%) scale(1)";
+            setTimeout(() => { alertBox.style.transform = "translateX(-50%) scale(0)"; }, 3000);
+
+            // Start Logic
+            raceLogic = new RaceLogic(raceDuration, TRACK_LENGTH, ducks);
+            raceLogic.start();
+            isRacing = true;
+        }
+
+        function resetGame() {
+            isRacing = false;
+            ducks = [];
+            document.getElementById('timer').innerText = "00:00.0";
+            document.getElementById('winner-screen').style.display = 'none';
+            document.getElementById('rank-list').innerHTML = "---";
+            cameraX = 0;
+            ctx.clearRect(0, 0, width, height);
+            drawEnvironment(0);
+        }
+
+        function finishGame() {
+            isRacing = false;
+            let winner = ducks.find(d => d.id === winnerId);
+
+            if (winner) {
+                // UI Update
+                document.getElementById('win-name').innerText = "Vịt #" + winner.id;
+                document.getElementById('winner-screen').style.display = 'flex';
+
+                // Effects
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+                drawWinnerAvatar(winner);
+
+                // Prize Logic
+                let prizeName = "Vô Địch";
+                let prizeItem = "";
+                if (currentPrizeIndex !== -1) {
+                    const p = prizes[currentPrizeIndex];
+                    prizeName = p.name;
+                    prizeItem = p.item;
+                    prizes[currentPrizeIndex].quantity--;
+                    localStorage.setItem('lucky_draw_prizes', JSON.stringify(prizes));
+                    updatePrizeUI();
+                }
+
+                // Save History
+                let winners = JSON.parse(localStorage.getItem('lucky_draw_winners') || '[]');
+                winners.push({
+                    name: "Vịt #" + winner.id,
+                    prize: prizeName,
+                    prizeItem: prizeItem,
+                    timestamp: Date.now(),
+                    gameType: "Đua Vịt Tet V2"
+                });
+                localStorage.setItem('lucky_draw_winners', JSON.stringify(winners));
+            }
+        }
+
+        // --- RENDERING ---
+        function loop() {
+            globalTimer += 0.05;
+
+            if (isRacing && raceLogic) {
+                let now = performance.now() / 1000;
+                let isFinished = raceLogic.update(now);
+                updateCamera();
+
+                let elapsedMS = (now - raceLogic.startTime) * 1000;
+                updateTimerUI(elapsedMS);
+                updateRankUI();
+
+                if (isFinished) finishGame();
+            }
+
+            // Draw Frame
+            ctx.clearRect(0, 0, width, height);
+            drawWater();
+
+            ctx.save();
+            ctx.translate(-cameraX, 0);
+            drawEnvironment(cameraX);
+            drawDucks();
+            ctx.restore();
+
+            requestAnimationFrame(loop);
+        }
+
+        function updateCamera() {
+            let maxX = ducks.length > 0 ? Math.max(...ducks.map(d => d.x)) : 0;
+            let targetCam = maxX - (width * 0.7); // Keep leader at 70% width
+            targetCam = Math.max(0, Math.min(targetCam, FINISH_LINE - width));
+            cameraX += (targetCam - cameraX) * 0.1;
+        }
+
+        function updateTimerUI(elapsed) {
+            let ms = Math.floor((elapsed % 1000) / 100);
+            let s = Math.floor((elapsed / 1000) % 60);
+            let m = Math.floor(elapsed / 60000);
+            document.getElementById('timer').innerText =
+                (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s) + "." + ms;
+        }
+
+        function updateRankUI() {
+            let sorted = [...ducks].sort((a, b) => b.x - a.x);
+            let html = "";
+            for (let i = 0; i < Math.min(5, sorted.length); i++) {
+                html += `<div class="rank-item"><span class="${i === 0 ? 'rank-1' : ''}">#${sorted[i].id}</span></div>`;
+            }
+            document.getElementById('rank-list').innerHTML = html;
+        }
+
+        function drawWater() {
+            // Use semi-transparent blue to let the background (and clouds) show through
+            ctx.fillStyle = "rgba(79, 195, 247, 0.25)";
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        function drawEnvironment(camX) {
+            // Draw Finish Line
+            let screenFinish = START_LINE + TRACK_LENGTH;
+            // Simple Finish Line
+            ctx.fillStyle = "#D32F2F";
+            ctx.fillRect(screenFinish, 0, 20, height);
+            ctx.fillStyle = "#FFFFFF";
+            for (let y = 0; y < height; y += 40) ctx.fillRect(screenFinish + 20, y, 20, 20);
+            ctx.fillStyle = "#000000";
+            for (let y = 20; y < height; y += 40) ctx.fillRect(screenFinish + 20, y, 20, 20);
+        }
+
+        function drawDucks() {
+            ducks.forEach(d => {
+                let sx = d.x;
+                if (sx - cameraX > -100 && sx - cameraX < width + 100) {
+                    ctx.save();
+                    ctx.translate(sx, d.y);
+                    ctx.rotate(d.rotation || 0);
+
+                    // 1. Body (Ellipse)
+                    ctx.fillStyle = "#ffeb3b";
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 20, 12, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // 2. Head (Circle)
+                    ctx.beginPath();
+                    ctx.arc(10, -10, 12, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // 2.5. Wing (Animated)
+                    ctx.save();
+                    ctx.translate(-2, 3);
+                    // Wing angle proportional to velocity (Rising=Down, Falling=Up)
+                    let wingAngle = Math.max(-0.5, Math.min(0.5, d.velocity * -0.1));
+                    ctx.rotate(wingAngle);
+                    ctx.fillStyle = "#fbc02d";
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 12, 7, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+
+                    // 3. Beak (Triangle)
+                    ctx.fillStyle = "#ff9800";
+                    ctx.beginPath();
+                    ctx.moveTo(20, -10);
+                    ctx.lineTo(30, -5);
+                    ctx.lineTo(20, 0);
+                    ctx.fill();
+
+                    // 4. Eye (Dot)
+                    ctx.fillStyle = "black";
+                    ctx.beginPath();
+                    ctx.arc(14, -12, 2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // 5. Hat
+                    if (d.hat) {
+                        ctx.fillStyle = d.hat;
+                        ctx.fillRect(5, -25, 10, 10);
+                    }
+
+                    // 6. ID Tag
+                    ctx.fillStyle = "white";
+                    ctx.fillRect(-15, -5, 15, 12);
+                    ctx.fillStyle = "black";
+                    ctx.font = "bold 10px Arial";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(d.id, -7.5, 1);
+
+                    ctx.restore();
+                }
+            });
+        }
+
+        function drawWinnerAvatar(duck) {
+            const c = document.getElementById('win-canvas');
+            const cx = c.getContext('2d');
+            cx.clearRect(0, 0, c.width, c.height);
+
+            cx.save();
+            cx.translate(c.width / 2, c.height / 2);
+            cx.scale(3, 3); // Scale 3x
+
+            // Shadow
+            cx.shadowColor = "rgba(0,0,0,0.3)";
+            cx.shadowBlur = 10;
+            cx.shadowOffsetY = 5;
+
+            // Body
+            cx.fillStyle = "#ffeb3b";
+            cx.beginPath();
+            cx.ellipse(0, 5, 22, 14, 0, 0, Math.PI * 2);
+            cx.fill();
+
+            // Head
+            cx.beginPath();
+            cx.arc(10, -10, 15, 0, Math.PI * 2);
+            cx.fill();
+
+            // Wing
+            cx.shadowBlur = 0; cx.shadowOffsetY = 0; // Reset shadow for details
+            cx.fillStyle = "#fbc02d";
+            cx.beginPath();
+            cx.ellipse(-5, 5, 12, 7, 0.2, 0, Math.PI * 2);
+            cx.fill();
+
+            // Beak
+            cx.fillStyle = "#ff6f00";
+            cx.beginPath();
+            cx.moveTo(22, -8);
+            cx.quadraticCurveTo(35, -12, 35, -5);
+            cx.quadraticCurveTo(30, -2, 22, -5);
+            cx.fill();
+
+            // Eye (Detailed)
+            cx.fillStyle = "white"; // Sclera
+            cx.beginPath();
+            cx.arc(14, -12, 5, 0, Math.PI * 2);
+            cx.fill();
+            cx.fillStyle = "black"; // Pupil
+            cx.beginPath();
+            cx.arc(15, -12, 2, 0, Math.PI * 2);
+            cx.fill();
+
+            // Hat (Detailed)
+            if (duck.hat) {
+                cx.fillStyle = duck.hat;
+                cx.strokeStyle = "rgba(0,0,0,0.2)";
+                cx.lineWidth = 1;
+                // Top
+                cx.fillRect(6, -32, 10, 12);
+                cx.strokeRect(6, -32, 10, 12);
+                // Brim
+                cx.fillRect(2, -20, 18, 4);
+                cx.strokeRect(2, -20, 18, 4);
+            }
+
+            // ID Tag (Large)
+            cx.fillStyle = "white";
+            cx.fillRect(-20, 2, 24, 18);
+            cx.strokeStyle = "#ccc";
+            cx.strokeRect(-20, 2, 24, 18);
+            cx.fillStyle = "black";
+            cx.font = "bold 12px Arial";
+            cx.textAlign = "center";
+            cx.fillText(duck.id, -8, 15);
+
+            cx.restore();
+        }
+    </script>
+</body>
+
+</html>
