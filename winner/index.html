@@ -10,13 +10,21 @@
 
     <style>
         /* --- CẤU HÌNH CHUNG --- */
+        /* --- 1. GLOBAL VISUAL STYLE & LAYOUT (From Duck V2) --- */
         :root {
-            --primary-bg: #4a0072;
-            --secondary-bg: #240046;
+            --tet-red: #D32F2F;
+            --tet-gold: #FFD700;
+            --tet-yellow: #FFEB3B;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-light: #ffffff;
+            --text-dim: #dddddd;
+
+            /* Existing Vars */
             --gold-gradient: linear-gradient(180deg, #FFD700 0%, #FDB931 50%, #d4af37 100%);
             --card-glass: rgba(20, 0, 50, 0.85);
+            /* Keep for inner tables if needed */
             --card-border: rgba(255, 215, 0, 0.3);
-            --text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
         }
 
         * {
@@ -26,20 +34,214 @@
         }
 
         body {
+            margin: 0;
+            overflow: hidden;
+            /* Fixed body */
             font-family: 'Roboto', sans-serif;
-            min-height: 100vh;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+        }
+
+        /* Background: Full-screen festive Tet background */
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("../Ticke.me Fake/bg-y1.png");
+            background-position: 50%;
+            background-repeat: repeat;
+            z-index: -1;
+        }
+
+        /* Lớp phủ màu tím lên trên ảnh nền */
+        .bg-image::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 107, 107, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(241, 196, 15, 0.2) 0%, transparent 50%),
+                linear-gradient(135deg, rgba(113, 0, 209, 0.15) 0%, rgba(188, 86, 252, 0.25) 100%);
+            z-index: 0;
+            pointer-events: none;
+            animation: gradientShift 10s ease infinite;
+        }
+
+        @keyframes gradientShift {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+
+        /* --- CLOUDS ANIMATION --- */
+        .clouds-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 100px;
+            filter: blur(20px);
+            animation: floatCloud linear infinite;
+        }
+
+        .cloud::after,
+        .cloud::before {
+            content: '';
+            position: absolute;
+            background: inherit;
+            border-radius: 50%;
+        }
+
+        .cloud::after {
+            width: 100px;
+            height: 100px;
+            top: -50px;
+            left: 50px;
+        }
+
+        .cloud::before {
+            width: 120px;
+            height: 120px;
+            top: -70px;
+            left: 130px;
+        }
+
+        .cloud-1 {
+            width: 500px;
+            height: 150px;
+            top: 10%;
+            left: -600px;
+            animation-duration: 60s;
+            opacity: 0.6;
+        }
+
+        .cloud-2 {
+            width: 600px;
+            height: 180px;
+            top: 25%;
+            left: -700px;
+            animation-duration: 80s;
+            animation-delay: 10s;
+            opacity: 0.4;
+            transform: scale(1.2);
+        }
+
+        .cloud-3 {
+            width: 400px;
+            height: 120px;
+            top: 5%;
+            left: -500px;
+            animation-duration: 50s;
+            animation-delay: 25s;
+            opacity: 0.5;
+        }
+
+        .cloud-4 {
+            width: 550px;
+            height: 160px;
+            top: 15%;
+            left: -600px;
+            animation-duration: 70s;
+            animation-delay: 5s;
+            opacity: 0.3;
+            transform: scale(0.9);
+        }
+
+        @keyframes floatCloud {
+            0% {
+                left: -800px;
+            }
+
+            100% {
+                left: 100%;
+            }
+        }
+
+        /* --- DECORATION --- */
+        .decor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .decor-item {
+            position: absolute;
+        }
+
+        .decor-lanterns {
+            top: 60px;
+            right: 50px;
+            width: 150px;
+            animation: swing 3s ease-in-out infinite alternate;
+            transform-origin: top center;
+        }
+
+        @keyframes swing {
+            0% {
+                transform: rotate(-5deg);
+            }
+
+            100% {
+                transform: rotate(5deg);
+            }
+        }
+
+        /* --- MAIN CONTAINER (Glassmorphism) --- */
+        .main-container {
+            width: 95%;
+            max-width: 1400px;
+            height: 90vh;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             display: flex;
             flex-direction: column;
             align-items: center;
+            overflow-y: auto;
+            /* Allow scrolling inside */
             padding: 20px;
-            overflow-x: hidden;
             position: relative;
-            background-image: url("../yep-bg.jpg");
-            background-position: center center;
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-attachment: fixed;
-            color: #fff;
+            z-index: 10;
         }
 
         .btn-back {
@@ -68,19 +270,7 @@
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
         }
 
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image:
-                radial-gradient(circle at 10% 20%, rgba(255, 215, 0, 0.1) 2px, transparent 2.5px),
-                radial-gradient(circle at 90% 10%, rgba(255, 100, 100, 0.1) 2px, transparent 2.5px);
-            background-size: 50px 50px;
-            z-index: -1;
-        }
+
 
         .page-title {
             text-align: center;
@@ -138,11 +328,34 @@
         }
 
         /* --- TABLE LAYOUT --- */
+        /* --- TABLE LAYOUT --- */
         .game-section {
             width: 100%;
             max-width: 1200px;
             margin-bottom: 40px;
             animation: fadeIn 0.5s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #FFD700, #FFA000);
+            border-radius: 10px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #FFEB3B, #FFC107);
         }
 
         @keyframes fadeIn {
@@ -364,34 +577,49 @@
 
 <body>
 
+    <div class="bg-image"></div>
+    <div class="bg-overlay"></div>
+
+    <div class="clouds-container">
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        <div class="cloud cloud-4"></div>
+    </div>
+
+    <div class="decor-container">
+        <img src="../Ticke.me Fake/y1-logo.png" class="decor-item decor-lanterns" alt="Lồng Đèn"
+            onerror="this.style.display='none'">
+    </div>
+
     <a href="../index.html" class="btn-back">
         <i class="fa-solid fa-arrow-left"></i> Quay lại
     </a>
 
-    <h1 class="page-title">Bảng Vàng Vinh Danh</h1>
+    <div class="main-container">
+        <h1 class="page-title">Bảng Vàng Vinh Danh</h1>
 
-    <div class="controls">
-        <button class="btn-control btn-export" onclick="exportToCSV()">
-            <i class="fa-solid fa-file-export"></i> Xuất Excel (CSV)
-        </button>
-        <button class="btn-control btn-refresh" onclick="clearHistory()">
-            <i class="fa-solid fa-trash-arrow-up"></i> Làm mới (Xóa Lịch Sử)
-        </button>
+        <div class="controls">
+            <button class="btn-control btn-export" onclick="exportToCSV()">
+                <i class="fa-solid fa-file-export"></i> Xuất Excel (CSV)
+            </button>
+            <button class="btn-control btn-refresh" onclick="clearHistory()">
+                <i class="fa-solid fa-trash-arrow-up"></i> Làm mới (Xóa Lịch Sử)
+            </button>
+        </div>
+
+        <div id="main-content"
+            style="width: 100%; max-width: 1200px; display: flex; flex-direction: column; align-items: center;">
+            <!-- Containers will be injected here -->
+        </div>
+
+        <div id="empty-msg" class="empty-state" style="display:none">
+            <i class="fa-solid fa-clipboard-list empty-icon"></i>
+            <div class="empty-text">Chưa có dữ liệu</div>
+            <div class="empty-sub">Hãy tổ chức trò chơi để tìm ra người chiến thắng!</div>
+        </div>
+
     </div>
-
-    <div id="main-content"
-        style="width: 100%; max-width: 1200px; display: flex; flex-direction: column; align-items: center;">
-        <!-- Containers will be injected here -->
-    </div>
-
-    <div id="empty-msg" class="empty-state" style="display:none">
-        <i class="fa-solid fa-clipboard-list empty-icon"></i>
-        <div class="empty-text">Chưa có dữ liệu</div>
-        <div class="empty-sub">Hãy tổ chức trò chơi để tìm ra người chiến thắng!</div>
-    </div>
-
-    <div class="decor-icon decor-left"><i class="fa-solid fa-champagne-glasses"></i></div>
-    <div class="decor-icon decor-right"><i class="fa-solid fa-gifts"></i></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {

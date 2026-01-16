@@ -14,7 +14,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
     <style>
+        /* --- 1. GLOBAL VISUAL STYLE & LAYOUT (From Duck V2) --- */
         :root {
+            --tet-red: #D32F2F;
+            --tet-gold: #FFD700;
+            --tet-yellow: #FFEB3B;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-light: #ffffff;
+            --text-dim: #dddddd;
+
+            /* Existing Vars */
             --primary-color: #d63031;
             --accent-color: #f1c40f;
             --purple-brand: #7100d1;
@@ -29,26 +39,32 @@
         }
 
         body {
+            margin: 0;
+            overflow: hidden;
             font-family: 'Roboto', sans-serif;
-            min-height: 100vh;
+            height: 100vh;
+            width: 100vw;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
-            position: relative;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            overflow-x: hidden;
+            background-color: #000;
         }
 
-        .bg-line {
+        /* Background: Full-screen festive Tet background */
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-image: url("bg-y1.png");
             background-position: 50%;
             background-repeat: repeat;
-            position: relative;
+            z-index: -1;
         }
 
         /* Lớp phủ màu tím lên trên ảnh nền */
-        body::before {
+        .bg-image::before {
             content: "";
             position: absolute;
             top: 0;
@@ -72,6 +88,109 @@
 
             50% {
                 opacity: 0.8;
+            }
+        }
+
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+
+        /* --- CLOUDS ANIMATION --- */
+        .clouds-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 100px;
+            filter: blur(20px);
+            animation: floatCloud linear infinite;
+        }
+
+        .cloud::after,
+        .cloud::before {
+            content: '';
+            position: absolute;
+            background: inherit;
+            border-radius: 50%;
+        }
+
+        .cloud::after {
+            width: 100px;
+            height: 100px;
+            top: -50px;
+            left: 50px;
+        }
+
+        .cloud::before {
+            width: 120px;
+            height: 120px;
+            top: -70px;
+            left: 130px;
+        }
+
+        .cloud-1 {
+            width: 500px;
+            height: 150px;
+            top: 10%;
+            left: -600px;
+            animation-duration: 60s;
+            opacity: 0.6;
+        }
+
+        .cloud-2 {
+            width: 600px;
+            height: 180px;
+            top: 25%;
+            left: -700px;
+            animation-duration: 80s;
+            animation-delay: 10s;
+            opacity: 0.4;
+            transform: scale(1.2);
+        }
+
+        .cloud-3 {
+            width: 400px;
+            height: 120px;
+            top: 5%;
+            left: -500px;
+            animation-duration: 50s;
+            animation-delay: 25s;
+            opacity: 0.5;
+        }
+
+        .cloud-4 {
+            width: 550px;
+            height: 160px;
+            top: 15%;
+            left: -600px;
+            animation-duration: 70s;
+            animation-delay: 5s;
+            opacity: 0.3;
+            transform: scale(0.9);
+        }
+
+        @keyframes floatCloud {
+            0% {
+                left: -800px;
+            }
+
+            100% {
+                left: 100%;
             }
         }
 
@@ -199,35 +318,25 @@
         }
 
         /* --- MAIN CONTAINER --- */
+        /* --- MAIN CONTAINER --- */
         .container {
+            /* Glassmorphism from Duck V2 */
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
             position: relative;
             z-index: 10;
             display: flex;
             flex-direction: row;
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3),
-                0 10px 30px rgba(113, 0, 209, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            width: 100%;
+            width: 95%;
             max-width: 1200px;
-            min-height: 600px;
+            height: 90vh;
+            /* Fixed height like Duck V2 */
             overflow: hidden;
-            animation: containerFloat 6s ease-in-out infinite;
-        }
-
-        @keyframes containerFloat {
-
-            0%,
-            100% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
         }
 
         /* --- CONTROLS PANEL --- */
@@ -1307,7 +1416,17 @@
     </style>
 </head>
 
-<body class="bg-line">
+<body>
+    <div class="bg-image"></div>
+    <div class="bg-overlay"></div>
+
+    <div class="clouds-container">
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        <div class="cloud cloud-4"></div>
+    </div>
+
     <a href="../index.html" class="btn-back">
         <i class="fas fa-arrow-left"></i> Menu
     </a>
