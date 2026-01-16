@@ -574,6 +574,7 @@
 
             // 3. Initial Render
             renderDropdown();
+            renderBalls(); // Dynamic ball rendering
 
             // Auto select first available
             const firstAvailable = state.prizes.findIndex(p => p.quantity > 0);
@@ -584,6 +585,36 @@
 
             renderUI();
             resetWinnerUI();
+        }
+
+        // --- DYNAMIC BALL RENDERING ---
+        function renderBalls() {
+            const container = document.querySelector('.slots-container');
+            container.innerHTML = ''; // Clear existing
+
+            // Calculate digits needed. Default to 3 if no participants yet.
+            const count = state.participants.length > 0 ? state.participants.length.toString().length : 3;
+            // Ensure at least 3 digits for aesthetics if count is small, or strictly follow count?
+            // User asked for "correct with quantity", so if 100 people (3 digits), 1000 (4 digits).
+            // Let's stick to strict digits, but minimum 3 looks better? 
+            // Actually, "đúng với số lượng" implies exact digits. 
+            // If 50 people -> 2 digits? 01-50. 
+            // Let's use Math.max(3, count) to keep the UI looking good, or just count?
+            // If I have 1500 people, I need 4 digits.
+
+            const digits = Math.max(3, state.participants.length.toString().length);
+            CONFIG.BALL_COUNT = digits;
+
+            for (let i = 0; i < digits; i++) {
+                const ball = document.createElement('div');
+                ball.className = 'number-ball';
+                ball.id = `ball-${i + 1}`;
+                ball.textContent = '0';
+                container.appendChild(ball);
+            }
+
+            // Re-query elements
+            elements.balls = Array.from(document.querySelectorAll('.number-ball'));
         }
 
         // --- UI RENDERING ---
@@ -691,11 +722,24 @@
             const winnerIndex = Math.floor(Math.random() * state.participants.length);
             state.currentWinner = state.participants[winnerIndex];
 
-            // Parse STT (Last 3 digits)
-            let stt = (state.currentWinner.stt || "000").toString().replace(/[^0-9]/g, '');
-            if (stt.length > 3) stt = stt.slice(-3);
-            stt = stt.padStart(3, '0');
-            const targetDigits = stt.split('');
+            // Use Index + 1 as STT if stt property is missing or invalid
+            // Or try to parse stt if it exists
+            let rawStt = state.currentWinner.stt;
+            let sttNum = parseInt(rawStt);
+            if (isNaN(sttNum)) {
+                sttNum = winnerIndex + 1; // Fallback to 1-based index
+            }
+
+            // Pad to CONFIG.BALL_COUNT
+            let sttStr = sttNum.toString();
+            sttStr = sttStr.padStart(CONFIG.BALL_COUNT, '0');
+
+            // If for some reason stt is longer than balls (e.g. 1000 but only 3 balls), take last N
+            if (sttStr.length > CONFIG.BALL_COUNT) {
+                sttStr = sttStr.slice(-CONFIG.BALL_COUNT);
+            }
+
+            const targetDigits = sttStr.split('');
 
             // Animation
             const intervals = [];
@@ -712,7 +756,7 @@
             let delay = 1000;
             targetDigits.forEach((digit, index) => {
                 setTimeout(() => {
-                    clearInterval(intervals[index]);
+                    if (intervals[index]) clearInterval(intervals[index]);
                     const ball = elements.balls[index];
                     if (ball) {
                         ball.textContent = digit;
@@ -721,7 +765,7 @@
                         setTimeout(() => { ball.style.transform = "scale(1)"; }, 200);
                     }
 
-                    if (index === 2) { // Last ball
+                    if (index === targetDigits.length - 1) { // Last ball
                         setTimeout(endSpin, 800);
                     }
                 }, delay);
@@ -743,7 +787,8 @@
                 id: state.currentWinner.id,
                 prize: prize.name,
                 prizeItem: prize.item,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                gameType: "Quay Số"
             });
             localStorage.setItem(CONFIG.STORAGE_KEYS.WINNERS, JSON.stringify(winners));
 

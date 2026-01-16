@@ -89,6 +89,8 @@
             font-weight: 700;
             font-size: 14px;
             box-shadow: 0 8px 20px rgba(113, 0, 209, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+
+
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
@@ -480,8 +482,8 @@
             font-weight: 900;
             background: linear-gradient(135deg, #d63031 0%, #ff6b6b 50%, #d63031 100%);
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             background-clip: text;
+            -webkit-text-fill-color: transparent;
             text-transform: uppercase;
             letter-spacing: 4px;
             filter: drop-shadow(0 2px 4px rgba(214, 48, 49, 0.3));
@@ -1504,6 +1506,37 @@
             const selectedPrize = prizes[selectedIndex] || { name: "Giải Thưởng", item: "Phần quà may mắn", image: "" };
 
             slotStrip.addEventListener('transitionend', () => {
+                // --- SAVE WINNER LOGIC ---
+                try {
+                    const winnersHistory = JSON.parse(localStorage.getItem('lucky_draw_winners') || '[]');
+
+                    // Parse Name and ID from "Name - ID" format
+                    let wName = winnerName;
+                    let wId = "";
+
+                    // Simple check for " - " separator
+                    const separatorIndex = winnerName.lastIndexOf(" - ");
+                    if (separatorIndex !== -1) {
+                        wName = winnerName.substring(0, separatorIndex).trim();
+                        wId = winnerName.substring(separatorIndex + 3).trim();
+                    }
+
+                    winnersHistory.push({
+                        name: wName,
+                        id: wId,
+                        prize: selectedPrize.name || "Giải Thưởng",
+                        prizeItem: selectedPrize.item || "Phần quà",
+                        timestamp: Date.now(),
+                        gameType: "Vòng Quay May Mắn"
+                    });
+
+                    localStorage.setItem('lucky_draw_winners', JSON.stringify(winnersHistory));
+                    console.log("Saved winner:", wName);
+                } catch (e) {
+                    console.error("Error saving winner:", e);
+                }
+                // -------------------------
+
                 showWinnerPopup(winnerName, selectedPrize).then(() => {
                     if (removeWinnerCb.checked) {
                         names.splice(winnerIndex, 1);

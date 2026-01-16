@@ -607,37 +607,91 @@
             const reader = new FileReader();
             reader.onload = function (event) {
                 const text = event.target.result;
-                const lines = text.split('\n');
+                const lines = text.split(/\r\n|\n/);
                 const newData = [];
+
+                // Detect delimiter from first non-empty line
+                let delimiter = ',';
+                const firstLine = lines.find(l => l.trim().length > 0);
+                if (firstLine && firstLine.includes(';')) delimiter = ';';
+
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if (!line) continue;
-                    if (i === 0 && (line.toLowerCase().includes('stt') || line.toLowerCase().includes('tên'))) continue;
-                    const parts = line.split(',');
-                    if (parts.length >= 2) {
-                        if (type === 'emp') {
-                            newData.push({
-                                stt: parts[0].trim().replace(/^"|"$/g, ''),
-                                name: parts[1].trim().replace(/^"|"$/g, ''),
-                                id: (parts[2] || '').trim().replace(/^"|"$/g, '')
-                            });
+
+                    // Skip header
+                    const lowerLine = line.toLowerCase();
+                    if (i === 0 && (lowerLine.includes('stt') || lowerLine.includes('tên') || lowerLine.includes('name') || lowerLine.includes('mã') || lowerLine.includes('giải'))) continue;
+
+                    const parts = line.split(delimiter);
+                    const clean = (str) => (str || '').toString().trim().replace(/^"|"$/g, '');
+
+                    if (type === 'emp') {
+                        // Logic: 
+                        // 3 cols: STT, Name, ID
+                        // 2 cols: Name, ID
+                        // 1 col: Name
+                        let stt, name, id;
+
+                        if (parts.length >= 3) {
+                            stt = clean(parts[0]);
+                            name = clean(parts[1]);
+                            id = clean(parts[2]);
+                        } else if (parts.length === 2) {
+                            stt = newData.length + 1;
+                            name = clean(parts[0]);
+                            id = clean(parts[1]);
                         } else {
+                            stt = newData.length + 1;
+                            name = clean(parts[0]);
+                            id = '';
+                        }
+
+                        if (name) {
+                            newData.push({ stt, name, id });
+                        }
+                    } else {
+                        // Prize Logic: Name, Quantity, Item, Image
+                        if (parts.length >= 2) {
                             newData.push({
-                                name: parts[0].trim().replace(/^"|"$/g, ''),
-                                quantity: parseInt(parts[1].trim().replace(/^"|"$/g, '')),
-                                item: (parts[2] || '').trim().replace(/^"|"$/g, ''),
-                                image: (parts[3] || '').trim().replace(/^"|"$/g, '')
+                                name: clean(parts[0]),
+                                quantity: parseInt(clean(parts[1])) || 1,
+                                item: clean(parts[2]),
+                                image: clean(parts[3])
                             });
                         }
                     }
                 }
+
+                console.log("Parsed Data:", newData); // Debug log
+
                 if (newData.length > 0) {
                     const key = type === 'emp' ? 'lucky_draw_participants' : 'lucky_draw_prizes';
-                    localStorage.setItem(key, JSON.stringify(newData));
-                    showToast(`Đã import thành công ${newData.length} dòng!`, 'success');
-                    checkGameLock();
+
+                    // Explicitly save to localStorage
+                    try {
+                        localStorage.setItem(key, JSON.stringify(newData));
+                        console.log(`Saved ${newData.length} items to ${key}`);
+
+                        // Verify save
+                        const saved = localStorage.getItem(key);
+                        if (!saved) {
+                            throw new Error("LocalStorage save failed");
+                        }
+
+                        showToast(`Đã import thành công ${newData.length} dòng!`, 'success');
+                        checkGameLock();
+
+                        // If modal is open, refresh the table
+                        if (document.getElementById('manageModal').style.display === 'flex' && currentEditType === type) {
+                            manageData(type);
+                        }
+                    } catch (e) {
+                        console.error("Storage Error:", e);
+                        showToast("Lỗi khi lưu dữ liệu: " + e.message, 'error');
+                    }
                 } else {
-                    showToast("File lỗi hoặc không có dữ liệu!", 'error');
+                    showToast("File lỗi hoặc không có dữ liệu hợp lệ!", 'error');
                 }
                 e.target.value = '';
             };

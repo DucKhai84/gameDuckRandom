@@ -14,13 +14,9 @@
             --primary-bg: #4a0072;
             --secondary-bg: #240046;
             --gold-gradient: linear-gradient(180deg, #FFD700 0%, #FDB931 50%, #d4af37 100%);
-
-            /* [CHỈNH SỬA] Đổi nền kính sang màu tối để nổi bật trên background Vàng/Sáng */
-            --card-glass: rgba(20, 0, 50, 0.75);
-
-            --card-border: rgba(255, 215, 0, 0.4);
-            /* Viền vàng nhẹ */
-            --text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            --card-glass: rgba(20, 0, 50, 0.85);
+            --card-border: rgba(255, 215, 0, 0.3);
+            --text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
         }
 
         * {
@@ -38,16 +34,14 @@
             padding: 20px;
             overflow-x: hidden;
             position: relative;
-
-            /* GIỮ NGUYÊN BACKGROUND CỦA BẠN */
             background-image: url("../yep-bg.jpg");
             background-position: center center;
             background-repeat: no-repeat;
             background-size: cover;
             background-attachment: fixed;
+            color: #fff;
         }
 
-        /* [MỚI] NÚT QUAY LẠI */
         .btn-back {
             position: fixed;
             top: 20px;
@@ -74,7 +68,6 @@
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
         }
 
-        /* --- BACKGROUND DECORATION --- */
         body::before {
             content: '';
             position: absolute;
@@ -89,239 +82,248 @@
             z-index: -1;
         }
 
-        /* --- TIÊU ĐỀ --- */
         .page-title {
             text-align: center;
             font-size: 3rem;
             font-weight: 900;
             text-transform: uppercase;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             margin-top: 20px;
-            /* Thêm chút margin để không bị nút back che */
             background: var(--gold-gradient);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.8));
-            /* Tăng bóng đổ cho chữ dễ đọc */
             letter-spacing: 2px;
         }
 
-        /* --- CONTAINER --- */
-        .container {
-            width: 100%;
-            max-width: 1000px;
+        /* CONTROLS */
+        .controls {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 25px;
+            gap: 15px;
+            margin-bottom: 30px;
         }
 
-        /* --- CARD STYLE --- */
-        .card {
-            background: var(--card-glass);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--card-border);
+        .btn-control {
+            padding: 10px 20px;
             border-radius: 20px;
-            padding: 20px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
             display: flex;
             align-items: center;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-            /* Tăng bóng đổ */
-            position: relative;
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
-            border-color: #FFD700;
-        }
-
-        /* Avatar */
-        .avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background-color: #ddd;
-            margin-right: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 3px solid rgba(255, 255, 255, 0.5);
-            overflow: hidden;
-        }
-
-        .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Text Info */
-        .info {
-            flex: 1;
-            color: white;
-        }
-
-        .rank-title {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            opacity: 0.9;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
-        }
-
-        .name {
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin-bottom: 5px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .department {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        /* Badge Icon */
-        .badge-icon {
-            position: absolute;
-            top: -15px;
-            right: 20px;
-            font-size: 2.5rem;
-            filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.4));
-        }
-
-        /* --- GRID STRUCTURE --- */
-
-        /* 1. Giải Đặc Biệt */
-        .special-tier {
-            width: 60%;
-            min-width: 350px;
-            border: 2px solid #FFD700;
-            background: linear-gradient(135deg, rgba(74, 0, 114, 0.85), rgba(36, 0, 70, 0.9));
-            /* Nền đậm hơn */
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
-            padding: 30px;
-        }
-
-        .special-tier .avatar {
-            width: 100px;
-            height: 100px;
-            border-color: #FFD700;
-        }
-
-        .special-tier .rank-title {
-            color: #FFD700;
-        }
-
-        .special-tier .crown-icon {
-            position: absolute;
-            top: -25px;
-            left: -20px;
-            font-size: 3.5rem;
-            color: #FFD700;
-            transform: rotate(-15deg);
-            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
-        }
-
-        .special-tag {
-            background: var(--gold-gradient);
-            color: #4a0072;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: 800;
-            font-size: 0.8rem;
-            display: inline-block;
-            margin-top: 5px;
+            gap: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
-        /* 2. Grid Rows */
-        .grid-row {
-            display: flex;
-            gap: 20px;
+        .btn-export {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-export:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .btn-refresh {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-refresh:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        /* --- TABLE LAYOUT --- */
+        .game-section {
             width: 100%;
-            justify-content: center;
-            flex-wrap: wrap;
+            max-width: 1200px;
+            margin-bottom: 40px;
+            animation: fadeIn 0.5s ease-in-out;
         }
 
-        .normal-card {
-            flex: 1;
-            min-width: 300px;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        /* Colors */
-        .tier-1 {
-            border-left: 5px solid #2ecc71;
-        }
-
-        .tier-1 .rank-title {
-            color: #2ecc71;
-        }
-
-        .tier-1 .avatar {
-            border-color: #2ecc71;
-        }
-
-        .tier-2 {
-            border-left: 5px solid #3498db;
-        }
-
-        .tier-2 .rank-title {
-            color: #3498db;
-        }
-
-        .tier-2 .avatar {
-            border-color: #3498db;
-        }
-
-        .tier-3 {
-            border-left: 5px solid #e056fd;
-        }
-
-        .tier-3 .rank-title {
-            color: #e056fd;
-        }
-
-        .tier-3 .avatar {
-            border-color: #e056fd;
-        }
-
-        /* Icons */
-        .medal-1 {
-            color: #FFD700;
-        }
-
-        .medal-2 {
-            color: #C0C0C0;
-        }
-
-        .medal-3 {
-            color: #CD7F32;
-        }
-
-        /* Decoration */
-        .decor-icon {
-            position: absolute;
-            font-size: 4rem;
-            opacity: 0.2;
+        .game-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            padding-left: 20px;
+            border-left: 5px solid #FFD700;
+            text-transform: uppercase;
             color: #fff;
-            z-index: -1;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .decor-left {
-            bottom: 50px;
-            left: 50px;
-            transform: rotate(-15deg);
+        .table-container {
+            width: 100%;
+            background: var(--card-glass);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
-        .decor-right {
-            bottom: 50px;
-            right: 50px;
-            transform: rotate(15deg);
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #fff;
+        }
+
+        thead {
+            background: rgba(0, 0, 0, 0.4);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 900;
+            color: #FFD700;
+            border-bottom: 2px solid rgba(255, 215, 0, 0.2);
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Column Styles */
+        .col-avatar {
+            width: 80px;
+            text-align: center;
+        }
+
+        .col-id {
+            width: 150px;
+        }
+
+        .col-name {
+            width: 30%;
+        }
+
+        .col-prize {
+            width: 30%;
+        }
+
+        .col-time {
+            width: 160px;
+            text-align: right;
+        }
+
+        .avatar-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #FFD700;
+            object-fit: cover;
+        }
+
+        .winner-name {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .winner-id {
+            font-size: 1rem;
+            color: #40E0D0;
+            /* Turquoise for ID */
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        .prize-name {
+            font-weight: 700;
+            color: #FFD700;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            /* Space between Prize Name and Item */
+            line-height: 1.3;
+        }
+
+        .prize-item {
+            font-size: 0.95rem;
+            color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            /* Space between Icon and Text */
+        }
+
+        .col-time {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        .empty-state {
+            width: 100%;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 60px 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            /* Darker background for better contrast */
+            backdrop-filter: blur(15px);
+            border: 2px dashed #FFD700;
+            /* Clearer gold border */
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            animation: fadeIn 0.5s ease-out;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            color: #FFD700;
+            /* distinct gold */
+            margin-bottom: 15px;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+        }
+
+        .empty-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .empty-sub {
+            font-size: 1rem;
+            color: #aaa;
+            font-style: italic;
         }
 
         /* Responsive */
@@ -331,18 +333,30 @@
                 margin-top: 60px;
             }
 
-            .special-tier {
-                width: 100%;
+            th,
+            td {
+                padding: 10px;
             }
 
-            .grid-row {
-                flex-direction: column;
+            .col-time {
+                display: none;
             }
 
-            .badge-icon {
-                font-size: 2rem;
-                top: -10px;
-                right: 10px;
+            /* Hide time on mobile */
+            .winner-name {
+                font-size: 1rem;
+            }
+
+            .col-id {
+                width: auto;
+            }
+
+            .col-name {
+                width: auto;
+            }
+
+            .col-prize {
+                width: auto;
             }
         }
     </style>
@@ -356,80 +370,201 @@
 
     <h1 class="page-title">Bảng Vàng Vinh Danh</h1>
 
-    <div class="container">
-        <div class="card special-tier">
-            <i class="fa-solid fa-crown crown-icon"></i>
-            <div class="avatar">
-                <img src="https://ui-avatars.com/api/?name=Nguyen+Van+A&background=FFD700&color=fff&size=128"
-                    alt="Avatar">
-            </div>
-            <div class="info">
-                <div class="rank-title">ĐẶC BIỆT</div>
-                <div class="name">Nguyễn Văn A</div>
-                <div class="department">Phòng IT</div>
-                <div class="special-tag"><i class="fa-solid fa-crown"></i> XUẤT SẮC</div>
-            </div>
-        </div>
+    <div class="controls">
+        <button class="btn-control btn-export" onclick="exportToCSV()">
+            <i class="fa-solid fa-file-export"></i> Xuất Excel (CSV)
+        </button>
+        <button class="btn-control btn-refresh" onclick="clearHistory()">
+            <i class="fa-solid fa-trash-arrow-up"></i> Làm mới (Xóa Lịch Sử)
+        </button>
+    </div>
 
-        <div class="grid-row">
-            <div class="card normal-card tier-1">
-                <div class="badge-icon medal-1"><i class="fa-solid fa-medal"></i></div>
-                <div class="avatar">
-                    <img src="https://ui-avatars.com/api/?name=Le+Thi+B&background=2ecc71&color=fff&size=128"
-                        alt="Avatar">
-                </div>
-                <div class="info">
-                    <div class="rank-title">GIẢI NHẤT</div>
-                    <div class="name">Lê Thị B</div>
-                    <div class="department">Phòng Marketing</div>
-                </div>
-            </div>
+    <div id="main-content"
+        style="width: 100%; max-width: 1200px; display: flex; flex-direction: column; align-items: center;">
+        <!-- Containers will be injected here -->
+    </div>
 
-            <div class="card normal-card tier-2">
-                <div class="badge-icon medal-2"><i class="fa-solid fa-medal"></i></div>
-                <div class="avatar">
-                    <img src="https://ui-avatars.com/api/?name=Tran+Van+C&background=3498db&color=fff&size=128"
-                        alt="Avatar">
-                </div>
-                <div class="info">
-                    <div class="rank-title">GIẢI NHÌ</div>
-                    <div class="name">Trần Văn C</div>
-                    <div class="department">Phòng Kế Toán</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid-row">
-            <div class="card normal-card tier-3">
-                <div class="badge-icon medal-3"><i class="fa-solid fa-award"></i></div>
-                <div class="avatar">
-                    <img src="https://ui-avatars.com/api/?name=Pham+D&background=9b59b6&color=fff&size=128"
-                        alt="Avatar">
-                </div>
-                <div class="info">
-                    <div class="rank-title">GIẢI KHUYẾN KHÍCH</div>
-                    <div class="name">Phạm D</div>
-                    <div class="department">Phòng HR</div>
-                </div>
-            </div>
-
-            <div class="card normal-card tier-3">
-                <div class="badge-icon medal-3"><i class="fa-solid fa-award"></i></div>
-                <div class="avatar">
-                    <img src="https://ui-avatars.com/api/?name=Hoang+E&background=9b59b6&color=fff&size=128"
-                        alt="Avatar">
-                </div>
-                <div class="info">
-                    <div class="rank-title">GIẢI KHUYẾN KHÍCH</div>
-                    <div class="name">Hoàng E</div>
-                    <div class="department">Phòng Sale</div>
-                </div>
-            </div>
-        </div>
+    <div id="empty-msg" class="empty-state" style="display:none">
+        <i class="fa-solid fa-clipboard-list empty-icon"></i>
+        <div class="empty-text">Chưa có dữ liệu</div>
+        <div class="empty-sub">Hãy tổ chức trò chơi để tìm ra người chiến thắng!</div>
     </div>
 
     <div class="decor-icon decor-left"><i class="fa-solid fa-champagne-glasses"></i></div>
     <div class="decor-icon decor-right"><i class="fa-solid fa-gifts"></i></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWinners();
+        });
+
+        function loadWinners() {
+            const mainContent = document.getElementById('main-content');
+            const emptyMsg = document.getElementById('empty-msg');
+            const winners = JSON.parse(localStorage.getItem('lucky_draw_winners') || '[]');
+
+            if (winners.length === 0) {
+                mainContent.innerHTML = '';
+                emptyMsg.style.display = 'block';
+                return;
+            }
+
+            emptyMsg.style.display = 'none';
+            // Sort by newest first
+            winners.reverse();
+
+            // Group by Game Type
+            const games = {
+                'duck': { title: 'Đua Vịt (Duck Race)', icon: 'fa-feather', data: [], color: '#ffeb3b' },
+                'horse': { title: 'Đua Ngựa (Horse Race)', icon: 'fa-horse', data: [], color: '#ff9800' },
+                'wheel': { title: 'Vòng Quay May Mắn', icon: 'fa-dharmachakra', data: [], color: '#e056fd' },
+                'random': { title: 'Quay Số (Random)', icon: 'fa-dice', data: [], color: '#00e676' }
+            };
+
+            winners.forEach(w => {
+                const gType = (w.gameType || '').toLowerCase();
+                if (gType.includes('vịt')) games.duck.data.push(w);
+                else if (gType.includes('ngựa')) games.horse.data.push(w);
+                else if (gType.includes('quay số')) games.random.data.push(w);
+                else games.wheel.data.push(w); // Default to Wheel/Ticket
+            });
+
+            let html = '';
+
+            // Render each game section
+            Object.keys(games).forEach(key => {
+                const game = games[key];
+                if (game.data.length === 0) return;
+
+                html += `
+                <div class="game-section">
+                    <div class="game-title" style="border-color: ${game.color}">
+                        <i class="fa-solid ${game.icon}" style="color: ${game.color}"></i> ${game.title}
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-avatar">#</th>
+                                    <th class="col-id">Mã NV</th>
+                                    <th class="col-name">Họ và Tên</th>
+                                    <th class="col-prize">Giải Thưởng</th>
+                                    <th class="col-time">Thời Gian</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                game.data.forEach((w, index) => {
+                    let finalName = w.name;
+                    let finalId = w.id;
+
+                    // Intelligent Swap: If Name looks like ID (starts with YEG) and ID looks like Name
+                    if (finalName && String(finalName).trim().toUpperCase().startsWith('YEG')) {
+                        let temp = finalName;
+                        finalName = finalId;
+                        finalId = temp;
+                    }
+
+                    // Ensure YEG prefix on ID
+                    if (finalId && !String(finalId).trim().toUpperCase().startsWith('YEG')) {
+                        finalId = 'YEG' + finalId;
+                    }
+
+                    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(finalName)}&background=random&color=fff&size=128`;
+                    const date = new Date(w.timestamp).toLocaleString('vi-VN');
+
+                    html += `
+                    <tr>
+                        <td class="col-avatar">
+                            <img src="${avatarUrl}" class="avatar-img" alt="Avt">
+                        </td>
+                        <td>
+                            <div class="winner-id">${finalId || '---'}</div>
+                        </td>
+                        <td>
+                            <div class="winner-name">${finalName}</div>
+                        </td>
+                        <td>
+                            <div class="prize-name">${w.prize || 'Giải Thưởng'}</div>
+                            <div class="prize-item"><i class="fa-solid fa-gift"></i> ${w.prizeItem || 'Quà tặng'}</div>
+                        </td>
+                        <td class="col-time">
+                            ${date}
+                        </td>
+                    </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                `;
+            });
+
+            mainContent.innerHTML = html;
+        }
+
+        function exportToCSV() {
+            const winners = JSON.parse(localStorage.getItem('lucky_draw_winners') || '[]');
+            if (winners.length === 0) {
+                alert("Không có dữ liệu để xuất!");
+                return;
+            }
+
+            // CSV Header
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "STT,Mã NV,Họ và Tên,Giải Thưởng,Quà Tặng,Game,Thời Gian\n";
+
+            // CSV Rows
+            winners.forEach((w, index) => {
+                let finalName = w.name;
+                let finalId = w.id;
+
+                // Intelligent Swap for CSV
+                if (finalName && String(finalName).trim().toUpperCase().startsWith('YEG')) {
+                    let temp = finalName;
+                    finalName = finalId;
+                    finalId = temp;
+                }
+
+                // Ensure YEG prefix
+                if (finalId && !String(finalId).trim().toUpperCase().startsWith('YEG')) {
+                    finalId = 'YEG' + finalId;
+                }
+
+                const date = new Date(w.timestamp).toLocaleString('vi-VN');
+                const row = [
+                    index + 1,
+                    `"${finalId}"`,
+                    `"${finalName}"`,
+                    `"${w.prize}"`,
+                    `"${w.prizeItem}"`,
+                    `"${w.gameType}"`,
+                    `"${date}"`
+                ].join(",");
+                csvContent += row + "\n";
+            });
+
+            // Download
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "danh_sach_trung_giai.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function clearHistory() {
+            if (confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử trúng giải không?")) {
+                localStorage.removeItem('lucky_draw_winners');
+                loadWinners();
+            }
+        }
+    </script>
 
 </body>
 
