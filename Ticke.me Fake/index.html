@@ -57,7 +57,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url("bg-y1.png");
+            background-image: url("../FINAL.png");
             background-position: 50%;
             background-repeat: repeat;
             z-index: -1;
@@ -195,38 +195,33 @@
         }
 
         /* --- NÚT BACK MENU --- */
-        .btn-back {
+        /* Back Button Style from Duck V2 */
+        .btn-nav {
             position: fixed;
             top: 20px;
             left: 20px;
-            z-index: 1000;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-            color: var(--purple-brand);
-            padding: 12px 24px;
-            border-radius: 50px;
+            z-index: 100;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: var(--text-dim);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Roboto Condensed', sans-serif;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
             text-decoration: none;
-            font-weight: 700;
-            font-size: 14px;
-            box-shadow: 0 8px 20px rgba(113, 0, 209, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
-
-
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
             display: flex;
             align-items: center;
-            gap: 8px;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.8);
+            gap: 5px;
+            backdrop-filter: blur(5px);
         }
 
-        .btn-back:hover {
-            transform: translateY(-3px) scale(1.05);
-            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-            box-shadow: 0 12px 28px rgba(113, 0, 209, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
-            color: var(--primary-color);
-        }
-
-        .btn-back:active {
-            transform: translateY(-1px) scale(1.02);
+        .btn-nav:hover {
+            border-color: var(--tet-gold);
+            color: var(--tet-gold);
+            background: rgba(255, 215, 0, 0.1);
         }
 
         /* --- DECORATION --- */
@@ -1427,8 +1422,8 @@
         <div class="cloud cloud-4"></div>
     </div>
 
-    <a href="../index.html" class="btn-back">
-        <i class="fas fa-arrow-left"></i> Menu
+    <a href="../index.html" class="btn-nav">
+        <i class="fas fa-arrow-left"></i>Quay lại Menu
     </a>
 
     <div class="decor-container">

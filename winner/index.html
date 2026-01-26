@@ -53,7 +53,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url("../Ticke.me Fake/bg-y1.png");
+            background-image: url("../FINAL.png");
             background-position: 50%;
             background-repeat: repeat;
             z-index: -1;
@@ -244,30 +244,33 @@
             z-index: 10;
         }
 
-        .btn-back {
+        /* Back Button Style from Duck V2 */
+        .btn-nav {
             position: fixed;
             top: 20px;
             left: 20px;
             z-index: 100;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: var(--text-dim);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Roboto Condensed', sans-serif;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 20px;
-            background: linear-gradient(90deg, #FFD700, #FDB931);
-            color: #4a0072;
-            text-decoration: none;
-            border-radius: 30px;
-            font-weight: 900;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            border: 2px solid #fff;
-            transition: transform 0.2s;
+            gap: 5px;
+            backdrop-filter: blur(5px);
         }
 
-        .btn-back:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        .btn-nav:hover {
+            border-color: var(--tet-gold);
+            color: var(--tet-gold);
+            background: rgba(255, 215, 0, 0.1);
         }
 
 
@@ -592,8 +595,8 @@
             onerror="this.style.display='none'">
     </div>
 
-    <a href="../index.html" class="btn-back">
-        <i class="fa-solid fa-arrow-left"></i> Quay lại
+    <a href="../index.html" class="btn-nav">
+        <i class="fa-solid fa-arrow-left"></i> Quay lại Menu
     </a>
 
     <div class="main-container">
