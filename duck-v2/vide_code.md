@@ -124,3 +124,5 @@ Check currentPrizeIndex.
 Decrement prize quantity.
 
 Save to LocalStorage: lucky_draw_prizes (Inventory) and lucky_draw_winners (History logs: Name, Prize, Timestamp).
+
+
