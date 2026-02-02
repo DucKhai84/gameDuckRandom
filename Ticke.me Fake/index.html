@@ -1430,6 +1430,9 @@
         <img src="y1-logo.png" class="decor-item decor-lanterns" alt="Lồng Đèn" onerror="this.style.display='none'">
     </div>
 
+    <!-- Audio Element -->
+    <audio id="spinMusic" src="../audio/Nhạc Quay số JackPot.MP3" loop></audio>
+
     <div class="container">
 
         <div class="controls-panel" id="controlsPanel">
@@ -1448,6 +1451,15 @@
                 </div>
 
                 <div class="setting-group">
+                    <!-- Audio Control -->
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid rgba(113, 0, 209, 0.1); padding-bottom: 10px;">
+                        <label>Âm thanh:</label>
+                        <button id="btnMute"
+                            style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 1px solid rgba(113, 0, 209, 0.2); color: #333; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(113, 0, 209, 0.15);">
+                            <i class="fas fa-volume-up"></i> Bật/Tắt
+                        </button>
+                    </div>
 
 
                     <div style="margin-top: 10px;">
@@ -1523,6 +1535,8 @@
 
         const prizeSelect = document.getElementById('prizeSelect');
         const slotPanel = document.getElementById('slotPanel');
+        const spinMusic = document.getElementById('spinMusic');
+        const btnMute = document.getElementById('btnMute');
 
         let names = [];
         let prizes = []; // Global prizes array
@@ -1541,7 +1555,17 @@
             }
         }
 
-        function buildStrip(winnerName, duration) {
+        // Helper to extract ID from "Name - ID"
+        function extractId(text) {
+            if (!text) return "";
+            const separatorIndex = text.lastIndexOf(" - ");
+            if (separatorIndex !== -1) {
+                return text.substring(separatorIndex + 3).trim();
+            }
+            return text; // Fallback to full text if no separator
+        }
+
+        function buildStrip(winnerText, duration) {
             slotStrip.innerHTML = '';
             const fragment = document.createDocumentFragment();
 
@@ -1550,19 +1574,22 @@
             let dummyCount = Math.max(24, duration * 8);
 
             for (let i = 0; i < dummyCount; i++) {
-                let randomName = names[Math.floor(Math.random() * names.length)];
+                let randomText = names[Math.floor(Math.random() * names.length)];
                 let div = document.createElement('div');
                 div.className = 'slot-item';
-                div.textContent = randomName;
+                // SHOW ONLY ID
+                div.textContent = extractId(randomText);
                 fragment.appendChild(div);
             }
             let winnerDiv = document.createElement('div');
             winnerDiv.className = 'slot-item';
-            winnerDiv.textContent = winnerName;
+            // SHOW ONLY ID for Winner
+            winnerDiv.textContent = extractId(winnerText);
+
             winnerDiv.style.background = 'linear-gradient(180deg, #ffd700 0%, #ffed4e 50%, #ffc107 100%)';
             winnerDiv.style.webkitBackgroundClip = 'text';
             winnerDiv.style.webkitTextFillColor = 'transparent';
-            winnerDiv.style.backgroundClip = 'text';
+            winnerDiv.style.backgroundClip = 'text'; // Lint fix
             winnerDiv.style.filter = 'drop-shadow(0 4px 12px rgba(255, 215, 0, 0.8)) drop-shadow(0 0 30px rgba(255, 193, 7, 0.6))';
             fragment.appendChild(winnerDiv);
             slotStrip.appendChild(fragment);
@@ -1585,6 +1612,12 @@
 
             if (window.innerWidth > 768 && !controlsPanel.classList.contains('collapsed')) {
                 controlsPanel.classList.add('collapsed');
+            }
+
+            // Play Music
+            if (spinMusic) {
+                spinMusic.currentTime = 0;
+                spinMusic.play().catch(e => console.log("Audio play failed:", e));
             }
 
             isSpinning = true;
@@ -1650,8 +1683,39 @@
                 isSpinning = false;
                 spinBtn.disabled = false;
                 namesInput.disabled = false;
+
+                // Stop Music
+                if (spinMusic) {
+                    spinMusic.pause();
+                    spinMusic.currentTime = 0;
+                }
             }, { once: true });
         });
+
+        // --- MUTE BUTTON LOGIC ---
+        let isMuted = false;
+        if (btnMute && spinMusic) {
+            btnMute.addEventListener('click', () => {
+                isMuted = !isMuted;
+                spinMusic.muted = isMuted;
+
+                // Update Icon
+                const icon = btnMute.querySelector('i');
+                if (isMuted) {
+                    icon.classList.remove('fa-volume-up');
+                    icon.classList.add('fa-volume-mute');
+                    btnMute.style.color = "#999"; // Grey when muted
+                    btnMute.style.borderColor = "#999";
+                } else {
+                    icon.classList.remove('fa-volume-mute');
+                    icon.classList.add('fa-volume-up');
+                    icon.classList.remove('fa-volume-mute');
+                    icon.classList.add('fa-volume-up');
+                    btnMute.style.color = "#333"; // Theme color (Dark)
+                    btnMute.style.borderColor = "rgba(113, 0, 209, 0.2)";
+                }
+            });
+        }
 
         function showWinnerPopup(winnerName, prizeObject) {
             const duration = 10000;
