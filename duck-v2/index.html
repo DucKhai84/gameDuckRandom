@@ -879,8 +879,8 @@
                         // NEW STUN LOGIC with COOLDOWN
                         // Only stun if not already stunned AND cooldown is over
                         if (d.stunTimer <= 0 && d.collisionCooldown <= 0) {
-                            d.stunTimer = 1.0;          // Stun for 1s
-                            d.collisionCooldown = 4.0;  // Grace period to escape (1s stun + 3s escape)
+                            d.stunTimer = 0.5;          // Light stun (0.5s)
+                            d.collisionCooldown = 2.5;  // Quick recovery
                         }
 
                         // Escape Logic (Slide) - ONLY if not stunned (i.e., dragging past)
@@ -1180,7 +1180,7 @@
                         <div class="w-rank-badge">#${rank}</div>
                         <canvas id="${canvasId}" width="150" height="120"></canvas>
                         <div class="w-name-tag">${d.realName || ("Vịt #" + d.id)}</div>
-                        ${d.msnv ? `<div class="w-id-tag">${d.msnv}</div>` : ''}
+                        <div class="w-id-tag">${d.msnv || d.id}</div>
                         <div class="w-prize-tag">${pName}</div>
                     </div>
                 `;
@@ -1565,9 +1565,6 @@
                             ctx.rotate((Math.PI * 2) / 3);
                             ctx.fillStyle = "#FFD700"; // Gold
                             ctx.beginPath();
-                            // simple 5-point star or just circle
-                            let r = 15; // distance from center
-                            ctx.arc(r, 0, 4, 0, Math.PI * 2);
                             ctx.fill();
                         }
                         ctx.restore();
@@ -1606,14 +1603,23 @@
             // Hat (Detailed) - REMOVED
 
             // ID Tag (Large)
-            cx.fillStyle = "white";
-            cx.fillRect(-20, 2, 24, 18);
-            cx.strokeStyle = "#ccc";
-            cx.strokeRect(-20, 2, 24, 18);
-            cx.fillStyle = "black";
+            // ID Tag (Large)
+            // Show MSNV if available
+            let displayText = duck.msnv || duck.id;
+
+            // Adjust box size
             cx.font = "bold 12px Arial";
+            let textMetrics = cx.measureText(displayText);
+            let textWidth = textMetrics.width;
+            let boxWidth = Math.max(24, textWidth + 10);
+
+            cx.fillStyle = "white";
+            cx.fillRect(-20 - (boxWidth - 24) / 2, 2, boxWidth, 18);
+            cx.strokeStyle = "#ccc";
+            cx.strokeRect(-20 - (boxWidth - 24) / 2, 2, boxWidth, 18);
+            cx.fillStyle = "black";
             cx.textAlign = "center";
-            cx.fillText(duck.id, -8, 15);
+            cx.fillText(displayText, -8, 15);
 
             // Draw Name if available - REMOVED (Handled by HTML)
             // if (duck.realName) {
