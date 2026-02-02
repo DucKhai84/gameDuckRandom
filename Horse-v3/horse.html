@@ -383,39 +383,44 @@
 
         .win-box {
             background: rgba(20, 20, 20, 0.95);
-            padding: 40px;
-            border-radius: 30px;
+            padding: 60px;
+            border-radius: 40px;
             text-align: center;
-            border: 2px solid #ffca28;
+            border: 4px solid #ffca28;
             animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
-            box-shadow: 0 0 50px rgba(255, 202, 40, 0.3);
-            backdrop-filter: blur(10px);
+            gap: 15px;
+            box-shadow: 0 0 80px rgba(255, 202, 40, 0.5);
+            backdrop-filter: blur(15px);
+            min-width: 600px;
         }
 
         #win-canvas {
-            width: 200px;
-            height: 150px;
-            margin: 10px 0;
+            width: 300px;
+            height: 225px;
+            margin: 20px 0;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
         }
 
         .win-title {
-            font-size: 24px;
+            font-size: 32px;
             color: #ccc;
             text-transform: uppercase;
             letter-spacing: 2px;
             margin: 0;
+            display: none;
+            /* Controlled by JS */
         }
 
         .win-name {
-            font-size: 40px;
+            font-size: 64px;
             color: #FFD700;
             margin: 0;
             font-weight: 900;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
         }
 
         .crown {
@@ -481,13 +486,13 @@
                     <label>SỐ NGỰA</label>
                     <input type="number" id="inp-qty" value="12" min="2" max="50">
                 </div>
-                <div class="input-group">
+                <div class="input-group" style="display:none">
                     <label>THỜI GIAN (s)</label>
-                    <input type="number" id="inp-time" value="45" min="10" max="600">
+                    <input type="number" id="inp-time" value="30" disabled>
                 </div>
             </div>
 
-            <div class="timer-display" id="timer">00:00.0</div>
+            <div class="timer-display" id="timer" style="display:none">00:00.0</div>
 
             <button class="btn-action btn-start" id="btn-start" onclick="startGame()">🏁 BẮT ĐẦU</button>
             <button class="btn-action btn-reset" id="btn-reset" onclick="resetGame()">🔄 LÀM MỚI</button>
@@ -511,6 +516,10 @@
                     <h2 class="win-title">NHÀ VÔ ĐỊCH</h2>
                     <canvas id="win-canvas" width="400" height="300"></canvas>
                     <h1 id="win-name" class="win-name">#1</h1>
+                    <div id="win-id" class="win-subtitle" style="color:#aaa; font-size:1.2rem; margin-top:5px;"> ---
+                    </div>
+                    <div id="win-prize" class="win-subtitle"
+                        style="color:#FFD700; font-size:1.5rem; font-weight:bold; margin-top:10px;">GIẢI: ---</div>
                     <button class="btn-action btn-start" onclick="resetGame()"
                         style="margin-top: 20px; font-size:14px; padding:10px;">ĐUA VÁN MỚI</button>
                 </div>
@@ -527,17 +536,63 @@
         // --- AUDIO SYSTEM ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
+        let fireworksInterval = null;
+
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
             const now = audioCtx.currentTime;
+
             if (type === 'whistle') {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
                 osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); osc.frequency.linearRampToValueAtTime(1500, now + 0.1);
                 gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0, now + 0.5); osc.start(now); osc.stop(now + 0.5);
             } else if (type === 'slip') {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
                 osc.type = 'sawtooth'; osc.frequency.setValueAtTime(400, now); osc.frequency.linearRampToValueAtTime(100, now + 0.3);
                 gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0, now + 0.3); osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'fireworks_start') {
+                if (fireworksInterval) clearInterval(fireworksInterval);
+                playSound('fireworks_oneshot'); // Play immediately
+                fireworksInterval = setInterval(() => {
+                    playSound('fireworks_oneshot');
+                }, 1000); // Repeat every 1 second
+            } else if (type === 'fireworks_stop') {
+                if (fireworksInterval) {
+                    clearInterval(fireworksInterval);
+                    fireworksInterval = null;
+                }
+            } else if (type === 'fireworks_oneshot') {
+                // Simulate bursts of noise
+                for (let i = 0; i < 15; i++) {
+                    let t = now + (Math.random() * 2);
+                    let dur = 0.1 + Math.random() * 0.2;
+
+                    let bufferSize = audioCtx.sampleRate * dur;
+                    let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                    let data = buffer.getChannelData(0);
+                    for (let j = 0; j < bufferSize; j++) {
+                        data[j] = Math.random() * 2 - 1;
+                    }
+
+                    let noise = audioCtx.createBufferSource();
+                    noise.buffer = buffer;
+                    let gain = audioCtx.createGain();
+
+                    let filter = audioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 500 + Math.random() * 1000;
+
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    gain.gain.setValueAtTime(0.5, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + dur);
+
+                    noise.start(t);
+                }
             } else if (type === 'win') {
                 let f = [523, 659, 784, 1046];
                 f.forEach((freq, i) => {
@@ -721,6 +776,11 @@
                     if (progress < 0.3) strategyMult = d.strategyData.boostStart;
                     else if (progress > 0.8) strategyMult = d.strategyData.boostEnd;
 
+                    // EXTRA SPEED at the end (Last 15% of race)
+                    if (progress > 0.85) {
+                        strategyMult *= 1.3; // Speed up by 30% near finish
+                    }
+
                     let variance = 0.95 + Math.random() * 0.1;
                     if (d.strategy === 'WILD') variance = 0.8 + Math.random() * 0.4;
 
@@ -828,12 +888,42 @@
             ctx.textAlign = "center";
             ctx.textBaseline = "bottom";
 
+            // Draw Start Line (Simple Checkered)
             ctx.fillStyle = "#fff";
             for (let y = TOP_MARGIN; y < height; y += 40) {
-                ctx.fillRect(START_LINE, y, 20, 20); ctx.fillRect(START_LINE + 20, y + 20, 20, 20);
-                ctx.fillRect(FINISH_LINE, y, 40, 40); ctx.fillRect(FINISH_LINE + 40, y + 40, 40, 40);
+                ctx.fillRect(START_LINE, y, 20, 20);
+                ctx.fillRect(START_LINE + 20, y + 20, 20, 20);
             }
-            ctx.fillStyle = "#d32f2f"; ctx.fillRect(FINISH_LINE - 5, TOP_MARGIN - 50, 10, height);
+
+            // Draw Finish Line (Redesigned)
+            const finishX = FINISH_LINE;
+            const finishWidth = 80;
+
+            // 1. Vertical Posts
+            ctx.fillStyle = "#5D4037";
+            ctx.fillRect(finishX, TOP_MARGIN - 40, 10, height); // Left Post
+            ctx.fillRect(finishX + finishWidth, TOP_MARGIN - 40, 10, height); // Right Post
+
+            // 2. Banner / Arch
+            ctx.fillStyle = "#D32F2F";
+            ctx.fillRect(finishX, TOP_MARGIN - 60, finishWidth + 10, 40);
+
+            ctx.fillStyle = "#FFD700";
+            ctx.font = "bold 20px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("FINISH", finishX + finishWidth / 2 + 5, TOP_MARGIN - 40);
+
+            // 3. Ground Checkered Pattern
+            for (let y = TOP_MARGIN; y < height; y += 40) {
+                // Column 1
+                ctx.fillStyle = (y % 80 === 0) ? "#fff" : "#000";
+                ctx.fillRect(finishX + 10, y, 40, 40);
+
+                // Column 2
+                ctx.fillStyle = (y % 80 === 0) ? "#000" : "#fff";
+                ctx.fillRect(finishX + 50, y, 40, 40);
+            }
 
             for (let x = 0; x <= MAP_LENGTH; x += 1000) {
                 if (x < camX - 200 || x > camX + width + 200) continue;
@@ -911,7 +1001,7 @@
             setTimeout(() => { alertBox.style.transform = "translate(-50%, -50%) scale(0)"; }, 2000);
 
             let qty = parseInt(document.getElementById('inp-qty').value);
-            let time = parseInt(document.getElementById('inp-time').value);
+            let time = 30; // Hardcoded 30s as requested
             // Calculate avg speed based on time
             let avgSpeed = (FINISH_LINE - START_LINE) / (time * 60);
             let availableHeight = height - TOP_MARGIN - 100;
@@ -979,6 +1069,7 @@
         }
 
         function resetGame() {
+            playSound('fireworks_stop'); // Stop fireworks loop
             isRacing = false; ducks = []; logs = []; bananas = []; dusts = [];
             COMPOSITE.clear(world);
             document.getElementById('world-layer').innerHTML = '';
@@ -995,14 +1086,17 @@
         }
 
         function endGame(winner) {
-            isRacing = false; playSound('win');
+            isRacing = false;
+            playSound('win');
+            playSound('fireworks_start'); // Trigger fireworks sound
             document.getElementById('win-name').innerText = winner.id;
             document.getElementById('winner-screen').style.display = 'flex';
             confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#ffd700', '#ffffff', '#388e3c'] });
             drawWinnerAvatar(winner);
 
             // Deduct Prize
-            let prizeName = "Vô Địch";
+            // Deduct Prize
+            let prizeName = "VÔ ĐỊCH";
             let prizeItem = "";
             if (currentPrizeIndex !== -1) {
                 const p = prizes[currentPrizeIndex];
@@ -1012,6 +1106,26 @@
                 localStorage.setItem('lucky_draw_prizes', JSON.stringify(prizes));
                 updatePrizeUI();
             }
+
+            // UI Update
+            document.querySelector('.win-title').style.display = 'none'; // Hide generic title
+
+            // 1. Name
+            const wName = winner.participant.name || ("Ngựa " + winner.id);
+            document.getElementById('win-name').innerText = wName;
+
+            // 2. ID
+            const wID = winner.participant.id || "";
+            const idEl = document.getElementById('win-id');
+            if (wID) {
+                idEl.innerText = "ID: " + wID;
+                idEl.style.display = "block";
+            } else {
+                idEl.style.display = "none";
+            }
+
+            // 3. Prize
+            document.getElementById('win-prize').innerText = prizeName;
 
             // Save Winner
             let winnerData = {

@@ -1,4 +1,4 @@
-Role: Act as a Senior Frontend Developer & UI/UX Designer. Task: Create a high-fidelity web-based "Tet Duck Race" game interface using HTML5, CSS3 (Modern features), and Vanilla JavaScript (Canvas API). Theme: Lunar New Year (Tết) - Vibrant, Festive, High-end.
+Role: Act as a Senior Frontend Developer & UI/UX Designer. Task: Create a high-fidelity web-based "Tet Duck Race" game interface using HTML5, CSS3 (Modern features), and Vanilla JavaScript (Canvas AP I). Theme: Lunar New Year (Tết) - Vibrant, Festive, High-end.
 
 1. Global Visual Style & Layout (UI/UX)
 Design Language: Glassmorphism (Frosted Glass effect) mixed with vibrant Tet colors (Red #D32F2F, Gold #FFD700, Bright Yellow).
