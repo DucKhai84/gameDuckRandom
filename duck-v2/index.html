@@ -735,6 +735,7 @@
         // --- STATE ---
         let ducks = [];
         let logs = []; // Obstacles
+        let lotusLeaves = []; // Traps
         let isRacing = false;
         let raceLogic = null;
         let raceDuration = 30;
@@ -894,6 +895,24 @@
                         }
                     }
 
+                    // Collision with Lotus Leaves (Traps)
+                    // Effect: "Gựng lại" -> Temporary slowdown
+                    if (d.x < FINISH_LINE) {
+                        for (let leaf of lotusLeaves) {
+                            let dx = d.x - leaf.x;
+                            let dy = d.y - leaf.y;
+                            // Circular collision
+                            // Check if distance squared is less than sum of radii squared
+                            // Duck radius approx 15px
+                            if (dx * dx + dy * dy < (leaf.radius + 15) * (leaf.radius + 15)) {
+                                // Duck is in the lotus leaf zone
+                                // Slow down accumulation
+                                d.stuckTime += dt * 0.6; // 60% slowdown penalty
+                                // No slide - just sticky mud feeling
+                            }
+                        }
+                    }
+
                     // Calculate effective time for this duck
                     let effectiveElapsed = Math.max(0, elapsed - d.stuckTime);
 
@@ -1025,6 +1044,19 @@
                     height: 24, // Fixed thickness for cylinder look
                     rotation: Math.PI / 2 + (Math.random() - 0.5) * 0.4, // Rotate ~90 degrees to lie across the river
                     moss: Math.random() > 0.5 // 50% chance of moss
+                });
+            }
+
+            // Generate Lotus Leaves (Traps)
+            // They slow ducks down significantly ("gựng lại")
+            lotusLeaves = [];
+            let numLotus = Math.floor(TRACK_LENGTH / 400); // 1 patch every 400px
+            for (let i = 0; i < numLotus; i++) {
+                lotusLeaves.push({
+                    x: START_LINE + 200 + Math.random() * (TRACK_LENGTH - 500),
+                    y: BANK_HEIGHT + 20 + Math.random() * availableHeight,
+                    radius: 25 + Math.random() * 15, // 25-40px radius
+                    rotation: Math.random() * Math.PI * 2
                 });
             }
 
@@ -1211,6 +1243,7 @@
             ctx.save();
             ctx.translate(-cameraX, 0);
             drawEnvironment(cameraX);
+            drawLotusLeaves(); // Draw traps under ducks
             drawLogs();
             drawDucks();
             ctx.restore();
@@ -1416,6 +1449,42 @@
             });
         }
 
+        function drawLotusLeaves() {
+            lotusLeaves.forEach(leaf => {
+                if (leaf.x - cameraX > -100 && leaf.x - cameraX < width + 100) {
+                    ctx.save();
+                    ctx.translate(leaf.x, leaf.y);
+                    ctx.rotate(leaf.rotation);
+
+                    // Leaf Body (Pacman shape)
+                    ctx.fillStyle = "#4caf50"; // Base Green
+                    ctx.beginPath();
+                    ctx.arc(0, 0, leaf.radius, 0.2, Math.PI * 2 - 0.2); // Cutout slice
+                    ctx.lineTo(0, 0);
+                    ctx.fill();
+
+                    // Veins
+                    ctx.strokeStyle = "#81c784"; // Lighter Green
+                    ctx.lineWidth = 2;
+                    for (let i = 0; i < 5; i++) {
+                        let angle = (Math.PI * 2 * i) / 5;
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        ctx.lineTo(Math.cos(angle) * (leaf.radius - 2), Math.sin(angle) * (leaf.radius - 2));
+                        ctx.stroke();
+                    }
+
+                    // Darker center
+                    ctx.fillStyle = "#388e3c";
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.restore();
+                }
+            });
+        }
+
         function drawDucks() {
             ducks.forEach(d => {
                 let sx = d.x;
@@ -1578,17 +1647,17 @@
             cx.textAlign = "center";
             cx.fillText(duck.id, -8, 15);
 
-            // Draw Name if available
-            if (duck.realName) {
-                cx.fillStyle = "#333";
-                cx.font = "bold 14px Arial";
-                cx.fillText(duck.realName, 0, 40);
-                if (duck.msnv) {
-                    cx.font = "10px Arial";
-                    cx.fillStyle = "#666";
-                    cx.fillText(duck.msnv, 0, 52);
-                }
-            }
+            // Draw Name if available - REMOVED (Handled by HTML)
+            // if (duck.realName) {
+            //     cx.fillStyle = "#333";
+            //     cx.font = "bold 14px Arial";
+            //     cx.fillText(duck.realName, 0, 40);
+            //     if (duck.msnv) {
+            //         cx.font = "10px Arial";
+            //         cx.fillStyle = "#666";
+            //         cx.fillText(duck.msnv, 0, 52);
+            //     }
+            // }
 
             cx.restore();
         }
