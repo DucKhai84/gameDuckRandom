@@ -356,7 +356,7 @@
         .rank-board {
             position: absolute;
             top: 20px;
-            left: 20px;
+            right: 20px;
             width: 180px;
             background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(5px);
@@ -730,7 +730,7 @@
         const FINISH_LINE = MAP_LENGTH - 400;
         const TRACK_LENGTH = FINISH_LINE - START_LINE;
         const BANK_HEIGHT = 120;
-        const HATS = ['#e53935', '#8e24aa', '#1e88e5', '#43a047', '#333', '#fbc02d', null, null, null];
+        // const HATS removed per user request
 
         // --- STATE ---
         let ducks = [];
@@ -751,6 +751,9 @@
         let envCanvas = document.createElement('canvas');
         let envCtx = envCanvas.getContext('2d');
         let envCached = false;
+
+        const duckImage = new Image();
+        duckImage.src = "../images/rubber-duck.png";
 
         // --- INITIALIZATION ---
         window.addEventListener('DOMContentLoaded', () => {
@@ -839,8 +842,19 @@
                 let baseX = clampedT * this.distance;
 
                 this.ducks.forEach(d => {
-                    // Initialize stuckTime if not present
+                    // Initialize state flags
                     if (!d.stuckTime) d.stuckTime = 0;
+                    if (!d.stunTimer) d.stunTimer = 0;
+                    if (!d.collisionCooldown) d.collisionCooldown = 0; // New cooldown
+
+                    // Handle Stun Timer
+                    if (d.stunTimer > 0) {
+                        d.stunTimer -= dt;
+                        d.stuckTime += dt; // Time effectively stops
+                        // NO SLIDING OR MOVEMENT HERE - Fixes "dịch chuyển" bug
+                    } else if (d.collisionCooldown > 0) {
+                        d.collisionCooldown -= dt;
+                    }
 
                     // Collision Detection with Logs
                     let isColliding = false;
@@ -849,22 +863,9 @@
                     if (d.x < FINISH_LINE) {
                         for (let log of logs) {
                             // Hitbox for VERTICAL LOGS (Rotation ~90deg)
-                            // Log is now tall (width became height visually) and thin (height became width visually)
-                            // We check if duck is within the log's bounding box
-
-                            // Visual Width is roughly 24px (log.height)
-                            // Visual Height is 120-200px (log.width)
-                            // Duck radius approx 15px
-
-                            let logHalfThick = log.height / 2 + 5; // Reduced margin
+                            let logHalfThick = log.height / 2 + 5;
                             let logHalfLen = log.width / 2 + 5;
-
-                            // Check X (Thickness of vertical log)
-                            // Log is at log.x. Duck must be close to log.x
                             let inX = Math.abs(d.x - log.x) < (logHalfThick + 10);
-
-                            // Check Y (Length of vertical log)
-                            // Log is at log.y. Duck must be within the span of the log
                             let inY = Math.abs(d.y - log.y) < (logHalfLen + 5);
 
                             if (inX && inY) {
@@ -875,23 +876,25 @@
                     }
 
                     if (isColliding) {
-                        // SOFT BLOCK: Duck slows down significantly but doesn't stop 100%
-                        // This prevents infinite stuck if they can't slide out
-                        d.stuckTime += dt * 0.8;
+                        // NEW STUN LOGIC with COOLDOWN
+                        // Only stun if not already stunned AND cooldown is over
+                        if (d.stunTimer <= 0 && d.collisionCooldown <= 0) {
+                            d.stunTimer = 1.0;          // Stun for 1s
+                            d.collisionCooldown = 4.0;  // Grace period to escape (1s stun + 3s escape)
+                        }
 
-                        // Slide avoidance:
-                        // Move Y up or down depending on where they hit relative to log center
-                        // This guides them AROUND the vertical log
-                        // If they are above center, push up. Below, push down.
-                        // Add randomness to prevent perfect stacking
+                        // Escape Logic (Slide) - ONLY if not stunned (i.e., dragging past)
+                        // This pushes them out AFTER the stun finishes
+                        if (d.stunTimer <= 0) {
+                            d.stuckTime += dt * 0.5; // Slow down while squeezing past
 
-                        // Find the log we hit again for direction (simple heuristic)
-                        let nearLog = logs.find(l => Math.abs(d.x - l.x) < 50 && Math.abs(d.y - l.y) < 150);
-                        if (nearLog) {
-                            if (d.y < nearLog.y) d.initY -= 1.5; // Slide Up
-                            else d.initY += 1.5; // Slide Down
-                        } else {
-                            d.initY += (Math.random() - 0.5) * 3;
+                            let nearLog = logs.find(l => Math.abs(d.x - l.x) < 50 && Math.abs(d.y - l.y) < 150);
+                            if (nearLog) {
+                                if (d.y < nearLog.y) d.initY -= 0.5; // Stronger push to Ensure escape
+                                else d.initY += 0.5;
+                            } else {
+                                d.initY += (Math.random() - 0.5) * 1.0;
+                            }
                         }
                     }
 
@@ -902,13 +905,8 @@
                             let dx = d.x - leaf.x;
                             let dy = d.y - leaf.y;
                             // Circular collision
-                            // Check if distance squared is less than sum of radii squared
-                            // Duck radius approx 15px
                             if (dx * dx + dy * dy < (leaf.radius + 15) * (leaf.radius + 15)) {
-                                // Duck is in the lotus leaf zone
-                                // Slow down accumulation
                                 d.stuckTime += dt * 0.6; // 60% slowdown penalty
-                                // No slide - just sticky mud feeling
                             }
                         }
                     }
@@ -1087,7 +1085,7 @@
                     initY: BANK_HEIGHT + 20 + (i * laneHeight),
                     rank: ranks[i],
                     randomSeed: Math.floor(Math.random() * 10000),
-                    hat: HATS[Math.floor(Math.random() * HATS.length)],
+                    // Hat removed
                     x: START_LINE,
                     y: BANK_HEIGHT + 20 + (i * laneHeight),
                     // Physics Props - SWIMMING
@@ -1494,78 +1492,86 @@
                     ctx.translate(sx, d.y);
                     ctx.rotate(d.rotation || 0);
 
-                    // Water Splash Effect (Slower & Detailed)
+                    // Improved Water Splash & Wake
                     if (isRacing) {
-                        for (let i = 0; i < 5; i++) {
-                            // Slower animation speed (reduced multipliers)
-                            let t = globalTimer * 5 + i + d.randomSeed;
+                        // 1. Main Water Line / Contact Patch (Pulsing Ripple)
+                        let pulse = Math.sin(globalTimer * 10 + d.randomSeed) * 2;
+                        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+                        ctx.beginPath();
+                        ctx.ellipse(-5, 18, 28 + pulse, 6, 0, 0, Math.PI * 2);
+                        ctx.fill();
 
-                            // Position relative to duck tail
-                            let splashX = -22 - (i * 4) + Math.sin(t) * 2;
-                            let splashY = 8 + Math.cos(t * 0.7) * 2;
+                        // 2. Trailing Wake (Particles)
+                        for (let i = 0; i < 10; i++) {
+                            let t = globalTimer * 12 + i + d.randomSeed;
 
-                            // Varying size and opacity
-                            let size = 2 + Math.sin(t * 1.5) * 1.5;
-                            let opacity = 0.6 - (i * 0.1); // Fade out further back
+                            // Trail goes behind (negative X)
+                            // Start near tail (-20) and go back
+                            let xOff = -25 - (i * 4) + Math.cos(t) * 2;
+                            let yOff = 18 + Math.sin(t * 1.5) * 3;
 
-                            ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.1, opacity)})`;
-                            ctx.beginPath();
-                            ctx.arc(splashX, splashY, Math.max(0.5, size), 0, Math.PI * 2);
-                            ctx.fill();
+                            let size = 2.5 + Math.sin(t) * 1;
+                            let alpha = 0.7 - (i * 0.07);
+
+                            if (alpha > 0) {
+                                ctx.fillStyle = `rgba(220, 245, 255, ${alpha})`;
+                                ctx.beginPath();
+                                ctx.arc(xOff, yOff, size, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
                         }
                     }
 
-                    // 1. Body (Ellipse)
-                    ctx.fillStyle = "#ffeb3b";
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, 20, 12, 0, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // 2. Head (Circle)
-                    ctx.beginPath();
-                    ctx.arc(10, -10, 12, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // 2.5. Wing (Animated)
-                    ctx.save();
-                    ctx.translate(-2, 3);
-                    // Wing angle proportional to velocity (Rising=Down, Falling=Up)
-                    let wingAngle = Math.max(-0.5, Math.min(0.5, d.velocity * -0.1));
-                    ctx.rotate(wingAngle);
-                    ctx.fillStyle = "#fbc02d";
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, 12, 7, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-
-                    // 3. Beak (Triangle)
-                    ctx.fillStyle = "#ff9800";
-                    ctx.beginPath();
-                    ctx.moveTo(20, -10);
-                    ctx.lineTo(30, -5);
-                    ctx.lineTo(20, 0);
-                    ctx.fill();
-
-                    // 4. Eye (Dot)
-                    ctx.fillStyle = "black";
-                    ctx.beginPath();
-                    ctx.arc(14, -12, 2, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // 5. Hat
-                    if (d.hat) {
-                        ctx.fillStyle = d.hat;
-                        ctx.fillRect(5, -25, 10, 10);
+                    // 1. Draw Duck Image
+                    if (duckImage.complete) {
+                        ctx.drawImage(duckImage, -25, -25, 50, 50);
+                    } else {
+                        // Fallback circle if not loaded
+                        ctx.fillStyle = "#ffeb3b";
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 15, 0, Math.PI * 2);
+                        ctx.fill();
                     }
 
+                    // 5. Hat - REMOVED
+
                     // 6. ID Tag
-                    ctx.fillStyle = "white";
-                    ctx.fillRect(-15, -5, 15, 12);
-                    ctx.fillStyle = "black";
+                    // Show MSNV if available, otherwise just ID
+                    let displayText = d.msnv || d.id;
+
+                    // Adjust box size based on text length
                     ctx.font = "bold 10px Arial";
+                    let textMetrics = ctx.measureText(displayText);
+                    let textWidth = textMetrics.width;
+                    let boxWidth = Math.max(15, textWidth + 6);
+
+                    ctx.fillStyle = "white";
+                    ctx.fillRect(-10 - boxWidth / 2, -5, boxWidth, 12);
+                    ctx.fillStyle = "black";
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
-                    ctx.fillText(d.id, -7.5, 1);
+                    ctx.fillText(displayText, -10, 1);
+
+                    // 7. Stun Effect (Spinning Stars)
+                    if (d.stunTimer && d.stunTimer > 0) {
+                        ctx.save();
+                        // Position above head
+                        ctx.translate(0, -35);
+                        // Spin based on time
+                        ctx.rotate(globalTimer * 2);
+
+                        // Draw Cluster of stars
+                        for (let k = 0; k < 3; k++) {
+                            ctx.rotate((Math.PI * 2) / 3);
+                            ctx.fillStyle = "#FFD700"; // Gold
+                            ctx.beginPath();
+                            // simple 5-point star or just circle
+                            let r = 15; // distance from center
+                            ctx.arc(r, 0, 4, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                        ctx.restore();
+                    }
 
                     ctx.restore();
                 }
@@ -1587,55 +1593,17 @@
             cx.shadowBlur = 10;
             cx.shadowOffsetY = 5;
 
-            // Body
-            cx.fillStyle = "#ffeb3b";
-            cx.beginPath();
-            cx.ellipse(0, 5, 22, 14, 0, 0, Math.PI * 2);
-            cx.fill();
-
-            // Head
-            cx.beginPath();
-            cx.arc(10, -10, 15, 0, Math.PI * 2);
-            cx.fill();
-
-            // Wing
-            cx.shadowBlur = 0;
-            cx.shadowOffsetY = 0; // Reset shadow for details
-            cx.fillStyle = "#fbc02d";
-            cx.beginPath();
-            cx.ellipse(-5, 5, 12, 7, 0.2, 0, Math.PI * 2);
-            cx.fill();
-
-            // Beak
-            cx.fillStyle = "#ff6f00";
-            cx.beginPath();
-            cx.moveTo(22, -8);
-            cx.quadraticCurveTo(35, -12, 35, -5);
-            cx.quadraticCurveTo(30, -2, 22, -5);
-            cx.fill();
-
-            // Eye (Detailed)
-            cx.fillStyle = "white"; // Sclera
-            cx.beginPath();
-            cx.arc(14, -12, 5, 0, Math.PI * 2);
-            cx.fill();
-            cx.fillStyle = "black"; // Pupil
-            cx.beginPath();
-            cx.arc(15, -12, 2, 0, Math.PI * 2);
-            cx.fill();
-
-            // Hat (Detailed)
-            if (duck.hat) {
-                cx.fillStyle = duck.hat;
-                cx.strokeStyle = "rgba(0,0,0,0.2)";
-                cx.lineWidth = 1;
-                // Top
-                cx.fillRect(6, -32, 10, 12);
-                cx.strokeRect(6, -32, 10, 12);
-                // Brim
-                cx.fillRect(2, -20, 18, 4);
-                cx.strokeRect(2, -20, 18, 4);
+            // Body (Image)
+            if (duckImage.complete) {
+                cx.drawImage(duckImage, -25, -25, 50, 50);
+            } else {
+                cx.fillStyle = "#ffeb3b";
+                cx.beginPath();
+                cx.arc(0, 0, 20, 0, Math.PI * 2);
+                cx.fill();
             }
+
+            // Hat (Detailed) - REMOVED
 
             // ID Tag (Large)
             cx.fillStyle = "white";
