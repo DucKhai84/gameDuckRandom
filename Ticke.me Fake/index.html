@@ -1448,15 +1448,8 @@
                 </div>
 
                 <div class="setting-group">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                        <input type="checkbox" id="removeWinner" checked style="width: 18px; height: 18px;">
-                        <label for="removeWinner" style="cursor: pointer;">Xóa tên người trúng giải</label>
-                    </div>
-                    <div>
-                        <label>Thời gian quay (giây):</label>
-                        <input type="number" id="duration" value="3" min="1" max="10"
-                            style="padding: 5px; width: 60px; border-radius: 5px; border: 1px solid #ddd;">
-                    </div>
+
+
                     <div style="margin-top: 10px;">
                         <label>Chọn giải thưởng:</label>
                         <select id="prizeSelect"
@@ -1526,8 +1519,8 @@
         const spinBtn = document.getElementById('spinBtn');
         const resetBtn = document.getElementById('resetBtn');
         const excelInput = document.getElementById('excelInput');
-        const removeWinnerCb = document.getElementById('removeWinner');
-        const durationInput = document.getElementById('duration');
+
+
         const prizeSelect = document.getElementById('prizeSelect');
         const slotPanel = document.getElementById('slotPanel');
 
@@ -1600,7 +1593,7 @@
 
             const winnerIndex = Math.floor(Math.random() * names.length);
             const winnerName = names[winnerIndex];
-            const duration = parseInt(durationInput.value) || 3;
+            const duration = 25; // Fixed 25 seconds
             const targetOffset = buildStrip(winnerName, duration);
 
             // Reset về vị trí ban đầu
@@ -1652,11 +1645,7 @@
                 // -------------------------
 
                 showWinnerPopup(winnerName, selectedPrize).then(() => {
-                    if (removeWinnerCb.checked) {
-                        names.splice(winnerIndex, 1);
-                        namesInput.value = names.join('\n');
-                        updateList();
-                    }
+                    // Logic xóa người chơi đã bị loại bỏ
                 });
                 isSpinning = false;
                 spinBtn.disabled = false;
@@ -1698,7 +1687,7 @@
                 </div>
                 
                 <div class="prize-info-container animate__animated animate__fadeInUp animate__delay-2s" style="animation-delay: 1.2s;">
-                    <div class="prize-name-display">${prizeObject.name || 'Giải Thưởng'} - ${prizeObject.item || 'Phần quà may mắn'}</div>
+                    <div class="prize-name-display">${prizeObject.name || 'Giải Thưởng'}</div>
                     ${prizeObject.image ? `
                     <div class="prize-glow-circle">
                         <img src="${prizeObject.image}" class="prize-image-display" alt="Prize Image">
@@ -1851,7 +1840,11 @@
                 prizes.forEach((prize, index) => {
                     const option = document.createElement('option');
                     option.value = index; // Use index as value
-                    option.textContent = `${prize.name} - ${prize.item}`;
+
+                    const status = prize.quantity <= 0 ? " (HẾT)" : "";
+                    option.textContent = `${prize.name}${status}`;
+                    option.disabled = prize.quantity <= 0;
+
                     prizeSelect.appendChild(option);
                 });
             }

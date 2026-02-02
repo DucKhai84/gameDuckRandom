@@ -535,12 +535,12 @@
         }
 
         #winner-id {
-            font-size: 1.4rem;
-            color: #40E0D0;
-            margin: 5px 0 10px 0;
-            font-weight: bold;
-            letter-spacing: 2px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 1);
+            font-size: 3rem;
+            color: #00ffff;
+            margin: 15px 0;
+            font-weight: 900;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.4);
             transition: color 0.3s ease;
         }
 
@@ -574,11 +574,12 @@
 
         #winner-prize-item {
             font-family: 'Anton', sans-serif;
-            font-size: 2rem;
-            color: #fff;
+            font-size: 3rem;
+            color: #FFD700;
             text-transform: uppercase;
             letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            font-weight: bold;
         }
 
         /* --- NÚT BẤM HIỆN ĐẠI --- */
@@ -1011,18 +1012,19 @@
 
         <!-- RIGHT PANEL: GAME STAGE -->
         <div class="game-stage">
-            <!-- 3 BÓNG SỐ -->
+            <!-- 4 BÓNG SỐ -->
             <div class="slots-container" id="slotsContainer">
                 <div class="number-ball" id="ball-1">0</div>
                 <div class="number-ball" id="ball-2">0</div>
                 <div class="number-ball" id="ball-3">0</div>
+                <div class="number-ball" id="ball-4">0</div>
             </div>
 
             <!-- KHU VỰC HIỂN THỊ NGƯỜI THẮNG -->
             <div class="winner-section" id="winnerSection">
                 <div id="winner-prize-category">GIẢI THƯỞNG</div>
                 <h2 id="winner-name" class="winner-placeholder">Người trúng giải: ???</h2>
-                <div id="winner-id" class="winner-placeholder">MNV: ???</div>
+                <div id="winner-id" class="winner-placeholder">???</div>
 
                 <div class="prize-display-box">
                     <img src="" id="prizePreviewImg" class="prize-img-preview" style="display:none">
@@ -1037,7 +1039,7 @@
     <script>
         // --- CONFIGURATION ---
         const CONFIG = {
-            BALL_COUNT: 3,
+            BALL_COUNT: 4,
             STORAGE_KEYS: {
                 PRIZES: 'lucky_draw_prizes',
                 PARTICIPANTS: 'lucky_draw_participants',
@@ -1147,16 +1149,8 @@
             container.innerHTML = ''; // Clear existing
 
             // Calculate digits needed. Default to 3 if no participants yet.
-            const count = state.participants.length > 0 ? state.participants.length.toString().length : 3;
-            // Ensure at least 3 digits for aesthetics if count is small, or strictly follow count?
-            // User asked for "correct with quantity", so if 100 people (3 digits), 1000 (4 digits).
-            // Let's stick to strict digits, but minimum 3 looks better? 
-            // Actually, "đúng với số lượng" implies exact digits. 
-            // If 50 people -> 2 digits? 01-50. 
-            // Let's use Math.max(3, count) to keep the UI looking good, or just count?
-            // If I have 1500 people, I need 4 digits.
-
-            const digits = Math.max(3, state.participants.length.toString().length);
+            // FIXED: User requested 4 slots
+            const digits = 4;
             CONFIG.BALL_COUNT = digits;
 
             for (let i = 0; i < digits; i++) {
@@ -1256,7 +1250,7 @@
         function resetWinnerUI() {
             // Set Placeholder Text
             elements.winnerName.textContent = "Người trúng giải: ???";
-            elements.winnerId.textContent = "MNV: ???";
+            elements.winnerId.textContent = "???";
 
             // Apply Placeholder Classes
             elements.winnerName.className = "winner-placeholder";
@@ -1305,19 +1299,23 @@
 
             // Use Index + 1 as STT if stt property is missing or invalid
             // Or try to parse stt if it exists
-            let rawStt = state.currentWinner.stt;
-            let sttNum = parseInt(rawStt);
-            if (isNaN(sttNum)) {
-                sttNum = winnerIndex + 1; // Fallback to 1-based index
+            // Process ID for display on balls (Digits only)
+            let rawId = state.currentWinner.id || state.currentWinner.stt || (winnerIndex + 1).toString();
+
+            // Extract digits only (Remove non-numeric characters)
+            let digitsOnly = rawId.toString().replace(/\D/g, '');
+
+            // Fallback if no digits found
+            if (!digitsOnly) {
+                digitsOnly = (winnerIndex + 1).toString();
             }
 
-            // Pad to CONFIG.BALL_COUNT
-            let sttStr = sttNum.toString();
-            sttStr = sttStr.padStart(CONFIG.BALL_COUNT, '0');
-
-            // If for some reason stt is longer than balls (e.g. 1000 but only 3 balls), take last N
+            // Pad or trim to fit BALL_COUNT (4) - Take LAST 4 digits
+            let sttStr = digitsOnly;
             if (sttStr.length > CONFIG.BALL_COUNT) {
                 sttStr = sttStr.slice(-CONFIG.BALL_COUNT);
+            } else {
+                sttStr = sttStr.padStart(CONFIG.BALL_COUNT, '0');
             }
 
             const targetDigits = sttStr.split('');
@@ -1334,8 +1332,8 @@
             });
 
             // Stop balls
-            // User requested 35 seconds total spin time
-            const TOTAL_SPIN_TIME = 35000;
+            // User requested 35 seconds total spin time -> Changed to 25s
+            const TOTAL_SPIN_TIME = 25000;
             const STOP_INTERVAL = 2000; // Time between each ball stopping (2s)
 
             // Calculate starting delay for the first ball so the last ball stops at TOTAL_SPIN_TIME
