@@ -792,7 +792,7 @@
         });
 
         const MAP_LENGTH = 10000;
-        const TOP_MARGIN = 60;
+        const TOP_MARGIN = 120; // Reduced height
         const START_LINE = 200;
         const FINISH_LINE = MAP_LENGTH - 600;
 
@@ -920,7 +920,17 @@
             if (!isRacing && ducks.length === 0) {
                 ctx.fillStyle = isRainMode ? "#2e7d32" : "#388e3c";
                 ctx.fillRect(0, 0, width, height);
+
+                ctx.save();
+                drawBackground(0); // Draw background at initial position
                 drawTrackMarkings(0);
+                // Also draw track markings needs to be after background translated? 
+                // Wait, drawBackground handles global rects. 
+                // drawTrackMarkings handles lines.
+                // To be consistent with running state:
+                // background acts as bottom layer.
+                ctx.restore();
+
                 requestAnimationFrame(loop);
                 return;
             }
@@ -1013,6 +1023,9 @@
             ctx.fillRect(0, 0, width, height);
 
             ctx.save();
+            // Draw Background (Fixed position vertically, parallax horizontally)
+            drawBackground(cameraX);
+
             ctx.translate(-cameraX, 0);
 
             drawTrackMarkings(cameraX);
@@ -1158,6 +1171,103 @@
             ctx.stroke();
         }
 
+        function drawBackground(camX) {
+            const H = TOP_MARGIN;
+
+            // 1. Base Green Background
+            ctx.fillStyle = "#4CAF50"; // Main Green
+            ctx.fillRect(0, 0, width, H);
+
+            // 2. Small lighter triangles (Distant trees/hills)
+            const smallTreeSpacing = 100;
+            const smallTreeW = 40;
+            const smallTreeH = 60;
+            const parallaxSmall = 0.3; // Move slower
+
+            let startSmall = -(camX * parallaxSmall) % smallTreeSpacing;
+            if (startSmall > 0) startSmall -= smallTreeSpacing;
+
+            ctx.fillStyle = "#81C784"; // Light Green
+            for (let x = startSmall; x < width; x += smallTreeSpacing) {
+                if (x < -smallTreeW) continue;
+                ctx.beginPath();
+                ctx.moveTo(x, H - 20); // Base Y slightly up
+                ctx.lineTo(x + smallTreeW / 2, H - 20 - smallTreeH);
+                ctx.lineTo(x + smallTreeW, H - 20);
+                ctx.fill();
+            }
+
+            // 2.5 Ground Strip (Cushion)
+            ctx.fillStyle = "#388E3C"; // Darker Green
+            ctx.fillRect(0, H - 25, width, 25);
+
+            // Lighter edge for definition
+            ctx.fillStyle = "#66BB6A";
+            ctx.fillRect(0, H - 25, width, 5);
+
+            // 3. Big Pine Trees
+            const bigTreeSpacing = 250;
+            const parallaxBig = 0.5;
+
+            let startBig = -(camX * parallaxBig) % bigTreeSpacing;
+            if (startBig > 0) startBig -= bigTreeSpacing;
+
+            for (let x = startBig; x < width; x += bigTreeSpacing) {
+                if (x < -100) continue;
+                drawVectorTree(x + 30, H - 5); // Draw sitting on the strip
+            }
+
+            // 4. Blue Water Strip at Bottom - REMOVED
+            // ctx.fillStyle = "#4FC3F7"; 
+            // ctx.fillRect(0, H - 20, width, 20);
+        }
+
+        function drawVectorTree(x, bottomY) {
+            // Scaled down by ~0.6x to fit 120px height
+            const trunkW = 12;
+            const trunkH = 24;
+
+            // Shadow base
+            ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+            ctx.beginPath();
+            ctx.ellipse(x, bottomY, 16, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Trunk (Extended slightly down to look planted)
+            ctx.fillStyle = "#795548"; // Brown
+            ctx.fillRect(x - trunkW / 2, bottomY - trunkH, trunkW, trunkH + 5);
+
+            // Foliage (3 Triangles)
+            ctx.fillStyle = "#2E7D32"; // Dark Green
+
+            // Bottom Tier
+            const t1W = 48; const t1H = 36;
+            let t1Y = bottomY - 18;
+            ctx.beginPath();
+            ctx.moveTo(x - t1W / 2, t1Y);
+            ctx.lineTo(x, t1Y - t1H);
+            ctx.lineTo(x + t1W / 2, t1Y);
+            ctx.fill();
+
+            // Middle Tier
+            const t2W = 36; const t2H = 30;
+            let t2Y = t1Y - 18;
+            ctx.beginPath();
+            ctx.moveTo(x - t2W / 2, t2Y);
+            ctx.lineTo(x, t2Y - t2H);
+            ctx.lineTo(x + t2W / 2, t2Y);
+            ctx.fill();
+
+            // Top Tier
+            const t3W = 24; const t3H = 24;
+            let t3Y = t2Y - 18;
+            ctx.beginPath();
+            ctx.moveTo(x - t3W / 2, t3Y);
+            ctx.lineTo(x, t3Y - t3H);
+            ctx.lineTo(x + t3W / 2, t3Y);
+            ctx.fill();
+        }
+
         function startGame() {
             if (isRacing) return;
             playSound('whistle');
@@ -1256,7 +1366,10 @@
             requestAnimationFrame(() => {
                 ctx.clearRect(0, 0, width, height);
                 ctx.fillStyle = "#388e3c"; ctx.fillRect(0, 0, width, height);
+                ctx.save();
+                drawBackground(0);
                 drawTrackMarkings(0);
+                ctx.restore();
             });
         }
 
