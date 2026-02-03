@@ -18,7 +18,20 @@
             --glass-bg: rgba(255, 255, 255, 0.1);
             --glass-border: rgba(255, 255, 255, 0.2);
             --text-light: #ffffff;
+            --tet-red: #D32F2F;
+            --tet-gold: #FFD700;
+            --tet-yellow: #FFEB3B;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-light: #ffffff;
             --text-dim: #dddddd;
+
+            /* Ticke.me Fake Vars */
+            --primary-color: #d63031;
+            --accent-color: #f1c40f;
+            --purple-brand: #7100d1;
+            --slot-bg: #ecf0f1;
+            --text-color: #2c3e50;
         }
 
         body {
@@ -41,8 +54,9 @@
             width: 100%;
             height: 100%;
             background-image: url("../FINAL.png");
-            background-position: 50%;
-            background-repeat: repeat;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
             z-index: -1;
         }
 
@@ -100,18 +114,122 @@
             z-index: 10;
         }
 
+        /* --- CLOUDS ANIMATION --- */
+        .clouds-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 100px;
+            filter: blur(20px);
+            animation: floatCloud linear infinite;
+        }
+
+        .cloud::after,
+        .cloud::before {
+            content: '';
+            position: absolute;
+            background: inherit;
+            border-radius: 50%;
+        }
+
+        .cloud::after {
+            width: 100px;
+            height: 100px;
+            top: -50px;
+            left: 50px;
+        }
+
+        .cloud::before {
+            width: 120px;
+            height: 120px;
+            top: -70px;
+            left: 130px;
+        }
+
+        .cloud-1 {
+            width: 500px;
+            height: 150px;
+            top: 10%;
+            left: -600px;
+            animation-duration: 60s;
+            opacity: 0.6;
+        }
+
+        .cloud-2 {
+            width: 600px;
+            height: 180px;
+            top: 25%;
+            left: -700px;
+            animation-duration: 80s;
+            animation-delay: 10s;
+            opacity: 0.4;
+            transform: scale(1.2);
+        }
+
+        .cloud-3 {
+            width: 400px;
+            height: 120px;
+            top: 5%;
+            left: -500px;
+            animation-duration: 50s;
+            animation-delay: 25s;
+            opacity: 0.5;
+        }
+
+        .cloud-4 {
+            width: 550px;
+            height: 160px;
+            top: 15%;
+            left: -600px;
+            animation-duration: 70s;
+            animation-delay: 5s;
+            opacity: 0.3;
+            transform: scale(0.9);
+        }
+
+        @keyframes floatCloud {
+            0% {
+                left: -800px;
+            }
+
+            100% {
+                left: 100%;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         /* --- LEFT PANEL (From V2) --- */
         .controls-panel {
-            width: 300px;
-            min-width: 300px;
-            padding: 20px;
+            flex: 0 0 320px;
+            width: 320px;
+            max-width: 320px;
+            border-right: 2px solid rgba(113, 0, 209, 0.1);
+            background: linear-gradient(180deg, rgba(235, 235, 240, 0.95) 0%, rgba(225, 225, 235, 0.95) 100%);
+            position: relative;
+            z-index: 10;
+        }
+
+        .panel-inner {
+            width: 100%;
+            padding: 30px;
             display: flex;
             flex-direction: column;
             gap: 15px;
-            border-right: 1px solid var(--glass-border);
-            background: rgba(0, 0, 0, 0.2);
-            color: var(--text-light);
-            z-index: 10;
+            height: 100%;
+            overflow-y: auto;
         }
 
         .panel-header {
@@ -119,54 +237,66 @@
             font-weight: 900;
             font-size: 2rem;
             text-transform: uppercase;
-            background: linear-gradient(45deg, var(--tet-gold), var(--tet-red));
+            background: linear-gradient(135deg, var(--purple-brand) 0%, #9c27b0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-align: center;
             margin-bottom: 10px;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+            filter: drop-shadow(0 2px 4px rgba(113, 0, 209, 0.1));
         }
 
-        .btn-nav {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            color: var(--text-dim);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: 'Roboto Condensed', sans-serif;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            text-decoration: none;
+        .btn-nav-bottom {
+            margin-top: 20px;
+            padding: 15px 0;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            color: #666;
+            background: #f5f5f5;
             text-align: center;
-            display: block;
+            text-decoration: none;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        .btn-nav:hover {
-            border-color: var(--tet-gold);
-            color: var(--tet-gold);
-            background: rgba(255, 215, 0, 0.1);
+        .btn-nav-bottom:hover {
+            background: #e0e0e0;
+            color: #333;
+            border-color: #bbb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .prize-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
+            background: #fff;
+            border: 2px solid rgba(113, 0, 209, 0.1);
             border-radius: 12px;
             padding: 15px;
             text-align: center;
+            box-shadow: 0 4px 12px rgba(113, 0, 209, 0.05);
+            margin-bottom: 5px;
         }
 
         .prize-name {
             font-family: 'Roboto', sans-serif;
             font-weight: 900;
-            font-size: 1.2rem;
-            color: var(--tet-gold);
+            font-size: 1.6rem;
+            color: var(--purple-brand);
             margin-bottom: 5px;
+            text-shadow: none;
+            letter-spacing: 1px;
         }
 
         .prize-count {
-            font-size: 0.9rem;
-            color: var(--text-dim);
+            font-size: 1rem;
+            color: #666;
             font-style: italic;
         }
 
@@ -174,9 +304,11 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            background: rgba(0, 0, 0, 0.2);
+            background: #fff;
+            border: 2px solid rgba(113, 0, 209, 0.1);
             padding: 15px;
             border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
         .input-group {
@@ -190,32 +322,54 @@
             font-weight: bold;
             font-size: 0.9rem;
             margin-bottom: 0;
-            color: #aaa;
+            color: #555;
+            text-shadow: none;
         }
 
         .input-group input,
         .input-group select {
-            width: 80px;
-            padding: 5px;
-            border-radius: 6px;
-            border: 1px solid var(--glass-border);
-            background: rgba(0, 0, 0, 0.4);
-            color: var(--tet-gold);
+            width: 130px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(113, 0, 209, 0.2);
+            background: #f8f9fa;
+            color: #333;
             text-align: center;
             font-weight: bold;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .input-group select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%237100d1%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 10px;
+            padding-right: 25px;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: var(--purple-brand);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(113, 0, 209, 0.1);
         }
 
         .timer-display {
             font-family: 'Courier New', monospace;
             font-size: 2.5rem;
             font-weight: bold;
-            color: var(--tet-gold);
+            color: var(--purple-brand);
             text-align: center;
-            background: rgba(0, 0, 0, 0.4);
+            background: #fff;
             padding: 10px;
             border-radius: 10px;
-            border: 1px solid var(--tet-gold);
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+            border: 2px solid rgba(113, 0, 209, 0.2);
+            box-shadow: 0 2px 8px rgba(113, 0, 209, 0.1);
         }
 
         .btn-action {
@@ -232,24 +386,30 @@
         }
 
         .btn-start {
-            background: linear-gradient(135deg, var(--tet-gold), #FFA000);
-            color: #b71c1c;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            color: #333;
+            border: 2px solid rgba(113, 0, 209, 0.2);
+            box-shadow: 0 4px 12px rgba(113, 0, 209, 0.15);
         }
 
         .btn-start:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+            border-color: #7100d1;
+            color: #7100d1;
+            box-shadow: 0 6px 20px rgba(113, 0, 209, 0.3);
+            background: linear-gradient(135deg, #fff 0%, #f3e5f5 100%);
         }
 
         .btn-reset {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-light);
-            border: 1px solid var(--glass-border);
+            background: #fff;
+            color: #666;
+            border: 2px solid rgba(113, 0, 209, 0.1);
         }
 
         .btn-reset:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: #f8f9fa;
+            color: var(--purple-brand);
+            border-color: var(--purple-brand);
         }
 
         /* --- GAME STAGE (Right Panel) --- */
@@ -461,41 +621,54 @@
             onerror="this.style.display='none'" style="position:fixed; top:60px; right:50px; width:150px; z-index:1;">
     </div>
 
+    <!-- CLOUDS BACKGROUND -->
+    <div class="clouds-container">
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="cloud cloud-3"></div>
+        <div class="cloud cloud-4"></div>
+    </div>
+
     <div class="main-game-container">
         <!-- LEFT PANEL: CONTROLS -->
         <div class="controls-panel">
-            <div class="panel-header">ĐUA NGỰA <span
-                    style="font-size: 0.5em; vertical-align: super; color: #FFD700;">V3</span></div>
+            <div class="panel-inner">
+                <div class="panel-header">ĐUA NGỰA <span
+                        style="font-size: 0.5em; vertical-align: super; color: #FFD700;">V3</span></div>
 
-            <a href="../index.html" class="btn-nav">⬅ QUAY VỀ MENU</a>
 
-            <div class="prize-card">
-                <div class="prize-name" id="prize-name">ĐANG TẢI...</div>
-                <div class="prize-count" id="prize-count">---</div>
+
+                <div class="prize-card">
+                    <div class="prize-name" id="prize-name">ĐANG TẢI...</div>
+                    <div class="prize-count" id="prize-count">---</div>
+                </div>
+
+                <div class="settings-form">
+                    <div class="input-group">
+                        <label>CHỌN QUÀ</label>
+                        <select id="inp-prize" onchange="changePrize()">
+                            <option value="-1">---</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>SỐ NGỰA</label>
+                        <input type="number" id="inp-qty" value="12" min="2" max="50">
+                    </div>
+                    <div class="input-group" style="display:none">
+                        <label>THỜI GIAN (s)</label>
+                        <input type="number" id="inp-time" value="30" disabled>
+                    </div>
+                </div>
+
+                <div class="timer-display" id="timer" style="display:none">00:00.0</div>
+
+                <button class="btn-action btn-start" id="btn-start" onclick="startGame()">🏁 BẮT ĐẦU</button>
+                <button class="btn-action btn-reset" id="btn-reset" onclick="resetGame()">🔄 LÀM MỚI</button>
+
+                <a href="../index.html" class="btn-nav-bottom">
+                    ⬅ QUAY VỀ MENU
+                </a>
             </div>
-
-            <div class="settings-form">
-                <div class="input-group">
-                    <label>CHỌN QUÀ</label>
-                    <select id="inp-prize" onchange="changePrize()"
-                        style="width: 120px; padding: 5px; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0, 0, 0, 0.4); color: var(--tet-gold); font-weight: bold;">
-                        <option value="-1">---</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>SỐ NGỰA</label>
-                    <input type="number" id="inp-qty" value="12" min="2" max="50">
-                </div>
-                <div class="input-group" style="display:none">
-                    <label>THỜI GIAN (s)</label>
-                    <input type="number" id="inp-time" value="30" disabled>
-                </div>
-            </div>
-
-            <div class="timer-display" id="timer" style="display:none">00:00.0</div>
-
-            <button class="btn-action btn-start" id="btn-start" onclick="startGame()">🏁 BẮT ĐẦU</button>
-            <button class="btn-action btn-reset" id="btn-reset" onclick="resetGame()">🔄 LÀM MỚI</button>
         </div>
 
         <!-- RIGHT PANEL: GAME STAGE -->
@@ -516,7 +689,9 @@
                     <h2 class="win-title">NHÀ VÔ ĐỊCH</h2>
                     <canvas id="win-canvas" width="400" height="300"></canvas>
                     <h1 id="win-name" class="win-name">#1</h1>
-                    <div id="win-id" class="win-subtitle" style="color:#aaa; font-size:1.2rem; margin-top:5px;"> ---
+                    <div id="win-id" class="win-subtitle"
+                        style="color:#fff; font-size:1.8rem; margin-top:10px; background: rgba(255,255,255,0.15); padding: 5px 20px; border-radius: 30px; display: inline-block;">
+                        ---
                     </div>
                     <div id="win-prize" class="win-subtitle"
                         style="color:#FFD700; font-size:1.5rem; font-weight:bold; margin-top:10px;">GIẢI: ---</div>
@@ -1102,8 +1277,8 @@
                 const p = prizes[currentPrizeIndex];
                 prizeName = p.name;
                 prizeItem = p.item;
-                prizes[currentPrizeIndex].quantity--;
-                localStorage.setItem('lucky_draw_prizes', JSON.stringify(prizes));
+                // prizes[currentPrizeIndex].quantity--;
+                // localStorage.setItem('lucky_draw_prizes', JSON.stringify(prizes));
                 updatePrizeUI();
             }
 
@@ -1125,7 +1300,7 @@
             }
 
             // 3. Prize
-            document.getElementById('win-prize').innerText = prizeName;
+            document.getElementById('win-prize').innerText = "GIẢI: " + prizeName;
 
             // Save Winner
             let winnerData = {
@@ -1167,7 +1342,7 @@
         }
 
         // Initial Draw
-        drawTrackMarkings(0);
+        loop();
     </script>
 </body>
 
