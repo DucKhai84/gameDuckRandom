@@ -876,6 +876,8 @@
         let winnerId = -1;
         let cameraX = 0;
         let globalTimer = 0;
+        let lastRankUpdate = 0; // Throttle rank updates
+        const timerElement = document.getElementById('timer'); // Cache element
 
         // Prize System
         let prizes = [];
@@ -1379,7 +1381,12 @@
 
                 let elapsedMS = (now - raceLogic.startTime) * 1000;
                 updateTimerUI(elapsedMS);
-                updateRankUI();
+
+                // Throttle Rank UI updates (every 500ms) to prevent jank
+                if (now - lastRankUpdate > 0.5) {
+                    updateRankUI();
+                    lastRankUpdate = now;
+                }
 
                 if (isFinished) finishGame();
             }
@@ -1410,7 +1417,9 @@
             let ms = Math.floor((elapsed % 1000) / 100);
             let s = Math.floor((elapsed / 1000) % 60);
             let m = Math.floor(elapsed / 60000);
-            document.getElementById('timer').innerText = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s) + "." + ms;
+            if (timerElement) {
+                timerElement.innerText = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s) + "." + ms;
+            }
         }
 
         function updateRankUI() {
@@ -1418,7 +1427,7 @@
             let html = "";
 
             for (let i = 0; i < Math.min(5, sorted.length); i++) {
-                html += `<div class="rank-item"><span class="${i === 0 ? 'rank-1' : ''}">#${sorted[i].id}</span></div>`;
+                html += `<div class="rank-item"><span class="${i === 0 ? 'rank-1' : ''}">#${sorted[i].msnv || sorted[i].id}</span></div>`;
             }
 
             document.getElementById('rank-list').innerHTML = html;

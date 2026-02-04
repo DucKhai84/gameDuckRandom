@@ -1506,7 +1506,7 @@
                     let stratName = STRATEGIES[d.strategy].name;
                     let stratColor = STRATEGIES[d.strategy].color;
                     html += `<div class="r-item">
-                        <span class="${i === 0 ? 'r-1' : ''}">${i + 1}. ${d.id}</span>
+                        <span class="${i === 0 ? 'r-1' : ''}">${i + 1}. ${d.participant && d.participant.id ? d.participant.id : d.id}</span>
                         <span class="strat-tag" style="background:${stratColor}">${stratName}</span>
                     </div>`;
                 }
