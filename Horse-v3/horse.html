@@ -1213,7 +1213,7 @@
 
                 ctx.fillStyle = "white"; ctx.font = "bold 14px Arial"; ctx.textAlign = "center";
                 ctx.shadowColor = "black"; ctx.shadowBlur = 4;
-                ctx.fillText(d.id, 0, 0); // Display ID/Name
+                ctx.fillText(d.participant && d.participant.id ? d.participant.id : d.id, 0, 0); // Display ID on horse
 
                 ctx.fillStyle = STRATEGIES[d.strategy].color;
                 ctx.beginPath(); ctx.arc(0, -15, 4, 0, Math.PI * 2); ctx.fill();
@@ -1506,7 +1506,7 @@
                     let stratName = STRATEGIES[d.strategy].name;
                     let stratColor = STRATEGIES[d.strategy].color;
                     html += `<div class="r-item">
-                        <span class="${i === 0 ? 'r-1' : ''}">${i + 1}. ${d.participant && d.participant.id ? d.participant.id : d.id}</span>
+                        <span class="${i === 0 ? 'r-1' : ''}">${i + 1}. ${d.participant && d.participant.name ? d.participant.name : d.id}</span>
                         <span class="strat-tag" style="background:${stratColor}">${stratName}</span>
                     </div>`;
                 }

@@ -648,14 +648,21 @@
 
                             if (row.length >= 3) {
                                 stt = clean(row[0]);
-                                name = clean(row[1]);
-                                id = clean(row[2]);
+                                id = clean(row[1]); // Swapped: ID is usually 2nd if reversed? Or User said ID & Name reversed.
+                                // If default was Name(1), ID(2). User says reversed -> ID(1), Name(2).
+                                name = clean(row[2]);
                             } else if (row.length === 2) {
                                 stt = newData.length + 1;
-                                name = clean(row[0]);
-                                id = clean(row[1]);
+                                id = clean(row[0]); // Swapped
+                                name = clean(row[1]);
                             } else if (row.length === 1) {
                                 stt = newData.length + 1;
+                                id = clean(row[0]); // Assume ID if only 1 col? Or Name?
+                                // If reversed, maybe Name is safest fallback, or ID.
+                                // Let's keep it as is or logical swap?
+                                // If 1 col, usually it's Name list.
+                                // But if user is ID-centric...
+                                // Let's stick to:
                                 name = clean(row[0]);
                                 id = '';
                             }
