@@ -896,6 +896,19 @@
         // --- INITIALIZATION ---
         window.addEventListener('DOMContentLoaded', () => {
             loadPrizesAndPopulateDropdown();
+            // Load Participants Count
+            const storedParticipants = localStorage.getItem('lucky_draw_participants');
+            if (storedParticipants) {
+                try {
+                    const parts = JSON.parse(storedParticipants);
+                    const qtyInput = document.getElementById('inp-qty');
+                    if (qtyInput && parts.length > 0) {
+                        qtyInput.value = parts.length;
+                    }
+                } catch (e) {
+                    console.error("Error loading participants for count:", e);
+                }
+            }
             requestAnimationFrame(loop);
         });
 
@@ -1223,6 +1236,12 @@
                     initY: BANK_HEIGHT + 20 + (i * laneHeight),
                     rank: ranks[i],
                     randomSeed: Math.floor(Math.random() * 10000),
+                    hue: (() => {
+                        // 0:Yellow, 330:Red, 210:Blue, 120:Green, 270:Purple, 30:Orange
+                        const basicHues = [0, 0, 0, 330, 210, 120, 270, 30];
+                        let base = basicHues[Math.floor(Math.random() * basicHues.length)];
+                        return base + (Math.random() * 20 - 10); // Add small variance
+                    })(),
                     // Hat removed
                     x: START_LINE,
                     y: BANK_HEIGHT + 20 + (i * laneHeight),
@@ -1390,7 +1409,7 @@
         function updateCamera() {
             let maxX = ducks.length > 0 ? Math.max(...ducks.map(d => d.x)) : 0;
             let targetCam = maxX - (width * 0.5); // Keep leader at 50% width (Centered)
-            targetCam = Math.max(0, Math.min(targetCam, FINISH_LINE - width));
+            targetCam = Math.max(0, Math.min(targetCam, MAP_LENGTH - width));
             cameraX += (targetCam - cameraX) * 0.1;
         }
 
@@ -1435,7 +1454,7 @@
 
             // Draw Finish Line (Checkered Pattern)
             // Use START_LINE + Race Logic Distance (10000)
-            let logicalFinishX = START_LINE + 10000;
+            let logicalFinishX = FINISH_LINE;
 
             if (logicalFinishX - camX > -100 && logicalFinishX - camX < width + 100) {
                 let finishX = logicalFinishX;
@@ -1662,7 +1681,9 @@
 
                     // 1. Draw Duck Image
                     if (duckImage.complete) {
+                        ctx.filter = `hue-rotate(${d.hue || 0}deg)`;
                         ctx.drawImage(duckImage, -25, -25, 50, 50);
+                        ctx.filter = "none";
                     } else {
                         // Fallback circle if not loaded
                         ctx.fillStyle = "#ffeb3b";
@@ -1684,11 +1705,11 @@
                     let boxWidth = Math.max(15, textWidth + 6);
 
                     ctx.fillStyle = "white";
-                    ctx.fillRect(-10 - boxWidth / 2, -5, boxWidth, 12);
+                    ctx.fillRect(-30 - boxWidth / 2, -5, boxWidth, 12);
                     ctx.fillStyle = "black";
                     ctx.textAlign = "center";
                     ctx.textBaseline = "middle";
-                    ctx.fillText(displayText, -10, 1);
+                    ctx.fillText(displayText, -30, 1);
 
                     // 7. Stun Effect (Spinning Stars)
                     if (d.stunTimer && d.stunTimer > 0) {
@@ -1730,7 +1751,9 @@
 
             // Body (Image)
             if (duckImage.complete) {
+                cx.filter = `hue-rotate(${duck.hue || 0}deg)`;
                 cx.drawImage(duckImage, -25, -25, 50, 50);
+                cx.filter = "none";
             } else {
                 cx.fillStyle = "#ffeb3b";
                 cx.beginPath();

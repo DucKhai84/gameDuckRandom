@@ -501,9 +501,15 @@
             justify-content: flex-start;
             align-items: center;
             opacity: 1;
-            /* Always visible for placeholder */
+            /* Visible to show prize name */
+            visibility: visible;
             transform: translateY(0);
             transition: all 0.5s ease;
+        }
+
+        /* Class to hide winner details until spin ends */
+        .winner-details-hidden {
+            display: none;
         }
 
         #winner-prize-category {
@@ -1007,12 +1013,7 @@
 
 
 
-                <div class="input-group">
-                    <textarea id="namesInput" placeholder="Nhập tên người tham gia...&#10;Mỗi tên một dòng"></textarea>
-                    <div style="text-align: right; font-size: 13px; color: #ccc;">
-                        Số lượng: <strong id="countDisplay" style="color:#FFD700">0</strong>
-                    </div>
-                </div>
+                <!-- namesInput removed -->
 
                 <div class="setting-group">
                     <!-- Audio Control -->
@@ -1124,10 +1125,7 @@
             giftOverlay: document.getElementById('giftOverlay'),
             giftImage: document.getElementById('giftImageElem'),
 
-            // New Inputs
-            namesInput: document.getElementById('namesInput'),
-
-            countDisplay: document.getElementById('countDisplay'),
+            // namesInput and countDisplay removed
 
             // Audio Controls
             spinMusic: document.getElementById('spinMusic'),
@@ -1293,13 +1291,13 @@
         }
 
         function resetWinnerUI() {
-            // Set Placeholder Text
-            elements.winnerName.textContent = "Người trúng giải: ???";
-            elements.winnerId.textContent = "???";
+            // Hide Winner Details (Name/ID) but keep Section visible for Prize Name
+            elements.winnerName.classList.add('winner-details-hidden');
+            elements.winnerId.classList.add('winner-details-hidden');
 
-            // Apply Placeholder Classes
-            elements.winnerName.className = "winner-placeholder";
-            elements.winnerId.className = "winner-placeholder";
+            // Ensure section is visible
+            elements.winnerSection.style.opacity = '1';
+            elements.winnerSection.style.visibility = 'visible';
 
             // Reset Balls
             elements.balls.forEach(ball => {
@@ -1339,9 +1337,10 @@
             elements.spinBtn.classList.add('disabled');
             elements.prizeSelector.disabled = true;
 
-            // Update Text to "Spinning..."
-            elements.winnerName.textContent = "Đang quay...";
-            elements.winnerName.className = "winner-placeholder"; // Keep placeholder style while spinning
+            // Hide previous winner details
+            elements.winnerName.classList.add('winner-details-hidden');
+            elements.winnerId.classList.add('winner-details-hidden');
+
             elements.winnerId.textContent = "";
 
             // Pick Winner
@@ -1445,6 +1444,10 @@
             elements.winnerName.className = "winner-active";
             elements.winnerId.className = ""; // Remove placeholder class, use default ID style
 
+            // Show Winner Details
+            elements.winnerName.classList.remove('winner-details-hidden');
+            elements.winnerId.classList.remove('winner-details-hidden');
+
             renderDropdown(); // Update dropdown text (quantity)
             renderUI();       // Update badge
 
@@ -1471,48 +1474,10 @@
         }
 
         // --- TEXTAREA LOGIC ---
-        elements.namesInput.addEventListener('input', () => {
-            const text = elements.namesInput.value;
-            const lines = text.split('\n').filter(line => line.trim() !== '');
-
-            state.participants = lines.map((line, index) => {
-                let name = line.trim();
-                let id = (index + 1).toString().padStart(3, '0');
-
-                // Check if line contains " - " to separate Name and ID
-                // Format: "Name - ID"
-                const separatorIndex = line.lastIndexOf(' - ');
-                if (separatorIndex !== -1) {
-                    const namePart = line.substring(0, separatorIndex).trim();
-                    const idPart = line.substring(separatorIndex + 3).trim();
-
-                    if (namePart && idPart) {
-                        name = namePart;
-                        id = idPart;
-                    }
-                }
-
-                return { name: name, id: id, stt: id };
-            });
-
-            localStorage.setItem(CONFIG.STORAGE_KEYS.PARTICIPANTS, JSON.stringify(state.participants));
-            elements.countDisplay.textContent = state.participants.length;
-            renderBalls();
-        });
+        // --- TEXTAREA LOGIC REMOVED ---
 
         function updateTextareaFromState() {
-            if (state.participants.length > 0) {
-                elements.namesInput.value = state.participants.map(p => {
-                    if (p.id) {
-                        return `${p.name} - ${p.id}`;
-                    }
-                    return p.name;
-                }).join('\n');
-                elements.countDisplay.textContent = state.participants.length;
-            } else {
-                elements.namesInput.value = "";
-                elements.countDisplay.textContent = "0";
-            }
+            // Feature removed
         }
 
         // --- EXCEL UPLOAD PLACEHOLDER ---

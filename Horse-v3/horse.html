@@ -872,6 +872,19 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             loadCurrentPrize();
+            // Load Participants Count
+            const storedParticipants = localStorage.getItem('lucky_draw_participants');
+            if (storedParticipants) {
+                try {
+                    const parts = JSON.parse(storedParticipants);
+                    const qtyInput = document.getElementById('inp-qty');
+                    if (qtyInput && parts.length > 0) {
+                        qtyInput.value = parts.length;
+                    }
+                } catch (e) {
+                    console.error("Error loading participants for count:", e);
+                }
+            }
         });
 
         function loadCurrentPrize() {

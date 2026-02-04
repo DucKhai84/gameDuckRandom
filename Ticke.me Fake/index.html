@@ -1445,12 +1445,7 @@
 
 
 
-                <div class="input-group">
-                    <textarea id="namesInput" placeholder="Nhập tên người tham gia...&#10;Mỗi tên một dòng"></textarea>
-                    <div style="text-align: right; font-size: 13px; color: #888;">
-                        Số lượng: <strong id="countDisplay" style="color:#7100d1">0</strong>
-                    </div>
-                </div>
+                <!-- namesInput removed -->
 
                 <div class="setting-group">
                     <!-- Audio Control -->
@@ -1487,13 +1482,6 @@
         </div>
 
         <div class="slot-panel" id="slotPanel">
-            <!-- Trang trí Tết -->
-            <div class="tet-decor tet-text-top">Xuân Bính Ngọ</div>
-            <div class="tet-decor tet-text-bottom">Vạn Sự Như Ý</div>
-
-            <!-- Đồng tiền vàng -->
-            <div class="tet-decor coin-decor coin-left">福</div>
-            <div class="tet-decor coin-decor coin-right">禄</div>
 
             <!-- Pháo hoa -->
             <div class="tet-decor firework-decor firework-left"></div>
@@ -1528,8 +1516,8 @@
             controlsPanel.classList.toggle('collapsed');
         });
 
-        const namesInput = document.getElementById('namesInput');
-        const countDisplay = document.getElementById('countDisplay');
+        // const namesInput removed
+        // const countDisplay removed
         const slotStrip = document.getElementById('slotStrip');
         const spinBtn = document.getElementById('spinBtn');
         // const resetBtn = document.getElementById('resetBtn');
@@ -1546,17 +1534,32 @@
         let isSpinning = false;
         const ITEM_HEIGHT = 180;
 
-        function updateList() {
-            if (!namesInput) return;
-            const text = namesInput.value;
-            names = text.split('\n').map(n => n.trim()).filter(n => n !== '');
-            if (countDisplay) countDisplay.textContent = names.length;
+        function loadParticipantsFromStorage() {
+            const stored = localStorage.getItem('lucky_draw_participants');
+            if (stored) {
+                try {
+                    const participants = JSON.parse(stored);
+                    names = participants.map(p => {
+                        let n = p.name || "";
+                        let id = p.id || p.code || p.msnv || "";
+                        if (id) return `${n} - ${id}`;
+                        return n;
+                    });
+                } catch (e) {
+                    console.error("Error loading participants:", e);
+                    names = [];
+                }
+            }
+
             if (!isSpinning) {
                 slotStrip.style.transition = 'none';
                 slotStrip.style.transform = 'translateY(0px)';
-                slotStrip.innerHTML = `<div class="slot-item" style="font-size: 40px; color: #555;">${names.length > 0 ? 'Sẵn sàng' : 'Nhập tên'}</div>`;
+                slotStrip.innerHTML = `<div class="slot-item" style="font-size: 40px; color: #555;">${names.length > 0 ? 'Sẵn sàng' : 'Chưa có dữ liệu'}</div>`;
             }
         }
+
+        // Init
+        loadParticipantsFromStorage();
 
         // Helper to extract ID from "Name - ID"
         function extractId(text) {
@@ -1625,7 +1628,7 @@
 
             isSpinning = true;
             spinBtn.disabled = true;
-            namesInput.disabled = true;
+            // namesInput.disabled = true;
 
             const winnerIndex = Math.floor(Math.random() * names.length);
             const winnerName = names[winnerIndex];
@@ -1685,7 +1688,7 @@
                 });
                 isSpinning = false;
                 spinBtn.disabled = false;
-                namesInput.disabled = false;
+                // namesInput.disabled = false;
 
                 // Stop Music
                 if (spinMusic) {
