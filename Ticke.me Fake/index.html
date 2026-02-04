@@ -1560,6 +1560,35 @@
 
         // Init
         loadParticipantsFromStorage();
+        loadPrizesFromStorage();
+
+        function loadPrizesFromStorage() {
+            const storedPrizes = localStorage.getItem('lucky_draw_prizes');
+            prizeSelect.innerHTML = '<option value="">-- CHỌN GIẢI THƯỞNG --</option>';
+
+            if (storedPrizes) {
+                try {
+                    prizes = JSON.parse(storedPrizes);
+                    prizes.forEach((p, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        const status = p.quantity <= 0 ? " (HẾT)" : "";
+                        option.text = `${p.name}${status}`;
+                        if (p.quantity <= 0) option.disabled = true;
+                        prizeSelect.appendChild(option);
+                    });
+                } catch (e) {
+                    console.error("Error loading prizes:", e);
+                    prizes = [];
+                }
+            }
+
+            // Auto select first available
+            const firstAvailable = prizes.findIndex(p => p.quantity > 0);
+            if (firstAvailable !== -1) {
+                prizeSelect.value = firstAvailable;
+            }
+        }
 
         // Helper to extract ID from "Name - ID"
         function extractId(text) {

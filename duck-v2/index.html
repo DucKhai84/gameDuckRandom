@@ -1236,12 +1236,7 @@
                     initY: BANK_HEIGHT + 20 + (i * laneHeight),
                     rank: ranks[i],
                     randomSeed: Math.floor(Math.random() * 10000),
-                    hue: (() => {
-                        // 0:Yellow, 330:Red, 210:Blue, 120:Green, 270:Purple, 30:Orange
-                        const basicHues = [0, 0, 0, 330, 210, 120, 270, 30];
-                        let base = basicHues[Math.floor(Math.random() * basicHues.length)];
-                        return base + (Math.random() * 20 - 10); // Add small variance
-                    })(),
+                    hue: 0,
                     // Hat removed
                     x: START_LINE,
                     y: BANK_HEIGHT + 20 + (i * laneHeight),
@@ -1681,9 +1676,7 @@
 
                     // 1. Draw Duck Image
                     if (duckImage.complete) {
-                        ctx.filter = `hue-rotate(${d.hue || 0}deg)`;
                         ctx.drawImage(duckImage, -25, -25, 50, 50);
-                        ctx.filter = "none";
                     } else {
                         // Fallback circle if not loaded
                         ctx.fillStyle = "#ffeb3b";
@@ -1751,9 +1744,7 @@
 
             // Body (Image)
             if (duckImage.complete) {
-                cx.filter = `hue-rotate(${duck.hue || 0}deg)`;
                 cx.drawImage(duckImage, -25, -25, 50, 50);
-                cx.filter = "none";
             } else {
                 cx.fillStyle = "#ffeb3b";
                 cx.beginPath();
