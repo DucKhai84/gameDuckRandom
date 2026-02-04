@@ -616,6 +616,12 @@
 <body>
     <div class="bg-image"></div>
     <div class="bg-overlay"></div>
+
+    <!-- Background Music -->
+    <audio id="bgMusic" loop>
+        <source src="../audio/Nh%E1%BA%A1c%20%C4%91ua%20ng%E1%BB%B1a.MP3" type="audio/mpeg">
+    </audio>
+
     <div class="decor-container">
         <img src="../Ticke.me Fake/y1-logo.png" class="decor-item decor-lanterns" alt="Lồng Đèn"
             onerror="this.style.display='none'" style="position:fixed; top:60px; right:50px; width:150px; z-index:1;">
@@ -644,6 +650,16 @@
                 </div>
 
                 <div class="settings-form">
+                    <!-- Audio Control -->
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid rgba(113, 0, 209, 0.1); padding-bottom: 10px;">
+                        <label>ÂM THANH</label>
+                        <button id="btn-mute" onclick="toggleMusic()"
+                            style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 1px solid rgba(113, 0, 209, 0.2); color: #333; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(113, 0, 209, 0.15); display: flex; align-items: center; gap: 5px;">
+                            🔊 BẬT NHẠC
+                        </button>
+                    </div>
+
                     <div class="input-group">
                         <label>CHỌN QUÀ</label>
                         <select id="inp-prize" onchange="changePrize()">
@@ -711,6 +727,37 @@
         // --- AUDIO SYSTEM ---
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
+
+        // Music Control
+        const bgMusic = document.getElementById('bgMusic');
+        const btnMute = document.getElementById('btn-mute');
+
+        function toggleMusic() {
+            if (bgMusic.paused) {
+                bgMusic.play().then(() => {
+                    updateMuteButton();
+                }).catch(e => console.error("Music play failed:", e));
+            } else {
+                bgMusic.pause();
+                updateMuteButton();
+            }
+        }
+
+        function updateMuteButton() {
+            if (!bgMusic.paused) {
+                btnMute.innerText = "🔇 TẮT NHẠC";
+            } else {
+                btnMute.innerText = "🔊 BẬT NHẠC";
+            }
+        }
+
+        // Try to play music on first interaction
+        document.addEventListener('click', () => {
+            if (bgMusic.paused) {
+                bgMusic.play().then(updateMuteButton).catch(e => { });
+            }
+        }, { once: true });
+
         let fireworksInterval = null;
 
         function playSound(type) {
