@@ -551,12 +551,10 @@
         .winner-box {
             background: rgba(255, 255, 255, 0.8);
             border-radius: 15px;
-            width: 160px;
-            /* Reduced from 200px */
-            padding: 10px;
-            /* Reduced padding */
+            width: 340px;
+            /* Increased to fit 300px canvas */
+            padding: 15px;
             box-sizing: border-box;
-            /* Ensure padding doesn't add to width */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -568,10 +566,8 @@
         /* .winner-box.rank-1 removed for equal sizing */
 
         .winner-box canvas {
-            width: 100px;
-            /* Reduced from 150px */
-            height: 80px;
-            /* Reduced from 120px */
+            width: 300px;
+            height: 300px;
             object-fit: contain;
         }
 
@@ -603,8 +599,8 @@
         .w-name-tag {
             font-family: 'Anton', sans-serif;
             font-family: 'Anton', sans-serif;
-            font-size: 1.1rem;
-            /* Reduced from 1.5rem */
+            font-size: 2.2rem;
+            /* Increased from 1.1rem */
             color: #333;
             margin-top: 5px;
         }
@@ -623,8 +619,8 @@
         }
 
         .w-id-tag {
-            font-size: 0.8rem;
-            /* Reduced */
+            font-size: 1.6rem;
+            /* Increased from 0.8rem */
             color: #555;
             font-weight: bold;
             margin-top: 2px;
@@ -1094,7 +1090,7 @@
                     }
 
                     let finalX = baseX + noiseX + biasX + sprintBias;
-                    if (clampedDuckT >= 1) finalX = Math.min(finalX, this.distance);
+                    // if (clampedDuckT >= 1) finalX = Math.min(finalX, this.distance); // REMOVED to allow crossing
                     finalX = Math.max(0, finalX);
 
                     d.x = START_LINE + finalX;
@@ -1121,7 +1117,9 @@
                     d.rotation = tilt;
                 });
 
-                return t >= 1;
+                // Finish when leading duck crosses the finish line width (visually past it)
+                let leaderX = Math.max(...this.ducks.map(d => d.x));
+                return leaderX >= (START_LINE + this.distance + 50); // +50 for visual clearance
             }
         }
 
@@ -1284,7 +1282,7 @@
 
         function finishGame() {
             isRacing = false;
-            playSound('fireworks_start'); // Trigger fireworks loop on finish
+            // playSound('fireworks_start'); // REMOVED per user request
 
             // Find Top 1
             let sortedDucks = [...ducks].sort((a, b) => a.rank - b.rank); // Rank 1 is smallest
@@ -1330,10 +1328,10 @@
                 listHtml += `
                     <div class="winner-box ${rankClass}">
                         <div class="w-rank-badge">#${rank}</div>
-                        <canvas id="${canvasId}" width="150" height="120"></canvas>
-                        <div class="w-prize-tag" style="color: #d32f2f; font-size: 1.2rem; margin-bottom: 2px;">${pName}</div>
-                        <div class="w-name-tag" style="font-size: 1.6rem; color: #000; line-height: 1.2; margin: 4px 0;">${d.realName || ("Vịt #" + d.id)}</div>
-                        <div class="w-id-tag" style="font-size: 1.1rem; color: #333; font-weight: bold; background: #f0f0f0; padding: 4px 12px; border-radius: 12px; display: inline-block; margin-top: 4px;">ID: ${d.msnv || d.id}</div>
+                        <canvas id="${canvasId}" width="300" height="300"></canvas>
+                        <div class="w-prize-tag" style="color: #d32f2f; font-size: 1.6rem; margin-bottom: 2px;">${pName}</div>
+                        <div class="w-name-tag" style="font-size: 2.2rem; color: #000; line-height: 1.2; margin: 4px 0;">${d.realName || ("Vịt #" + d.id)}</div>
+                        <div class="w-id-tag" style="font-size: 1.6rem; color: #333; font-weight: bold; background: #f0f0f0; padding: 6px 16px; border-radius: 12px; display: inline-block; margin-top: 4px;">ID: ${d.msnv || d.id}</div>
                     </div>
                 `;
 
@@ -1482,7 +1480,7 @@
                 ctx.font = "bold 16px Arial";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillText("RACING GOAL", finishX + 30 + checkerSize, BANK_HEIGHT - 40);
+                // ctx.fillText("RACING GOAL", finishX + 30 + checkerSize, BANK_HEIGHT - 40);
             }
 
             // Draw Checkpoints / Distance Markers (Existing)
@@ -1735,7 +1733,7 @@
 
             cx.save();
             cx.translate(c.width / 2, c.height / 2);
-            cx.scale(2.5, 2.5); // Scale
+            cx.scale(5.5, 5.5); // Scaled to fit 300x300 (50*5.5 = 275px)
 
             // Shadow
             cx.shadowColor = "rgba(0,0,0,0.3)";
@@ -1744,6 +1742,8 @@
 
             // Body (Image)
             if (duckImage.complete) {
+                // Determine source dimensions to crop if needed, or just draw
+                // Assuming square image
                 cx.drawImage(duckImage, -25, -25, 50, 50);
             } else {
                 cx.fillStyle = "#ffeb3b";
@@ -1752,41 +1752,12 @@
                 cx.fill();
             }
 
-            // Hat (Detailed) - REMOVED
-
-            // ID Tag (Large)
-            // ID Tag (Large)
-            // Show MSNV if available
-            let displayText = duck.msnv || duck.id;
-
-            // Adjust box size
-            cx.font = "bold 12px Arial";
-            let textMetrics = cx.measureText(displayText);
-            let textWidth = textMetrics.width;
-            let boxWidth = Math.max(24, textWidth + 10);
-
-            cx.fillStyle = "white";
-            cx.fillRect(-20 - (boxWidth - 24) / 2, 2, boxWidth, 18);
-            cx.strokeStyle = "#ccc";
-            cx.strokeRect(-20 - (boxWidth - 24) / 2, 2, boxWidth, 18);
-            cx.fillStyle = "black";
-            cx.textAlign = "center";
-            cx.fillText(displayText, -8, 15);
-
-            // Draw Name if available - REMOVED (Handled by HTML)
-            // if (duck.realName) {
-            //     cx.fillStyle = "#333";
-            //     cx.font = "bold 14px Arial";
-            //     cx.fillText(duck.realName, 0, 40);
-            //     if (duck.msnv) {
-            //         cx.font = "10px Arial";
-            //         cx.fillStyle = "#666";
-            //         cx.fillText(duck.msnv, 0, 52);
-            //     }
-            // }
+            // ID Tag REMOVED per user request
 
             cx.restore();
         }
+
+
     </script>
 </body>
 
