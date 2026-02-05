@@ -1148,6 +1148,16 @@
 
             if (isRacing) return;
 
+            // Auto-hide panel-inner (Controls Panel)
+            document.querySelector('.controls-panel').style.display = 'none';
+
+            // Update dimensions for full screen
+            width = gameStage.offsetWidth;
+            height = gameStage.offsetHeight;
+            canvas.width = width;
+            canvas.height = height;
+            envCached = false;
+
             // Setup Ducks
             ducks = [];
             let qtyInput = document.getElementById('inp-qty');
@@ -1271,6 +1281,17 @@
             playSound('fireworks_stop'); // Stop fireworks loop
             isRacing = false;
             ducks = [];
+
+            // Restore Control Panel
+            document.querySelector('.controls-panel').style.display = '';
+
+            // Update dimensions back to normal
+            width = gameStage.offsetWidth;
+            height = gameStage.offsetHeight;
+            canvas.width = width;
+            canvas.height = height;
+            envCached = false;
+
             document.getElementById('timer').innerText = "00:00.0";
             document.getElementById('winner-screen').style.display = 'none';
             document.getElementById('top-5-container').innerHTML = ''; // Clear winner list
@@ -1287,7 +1308,7 @@
             // playSound('fireworks_start'); // REMOVED per user request
 
             // Find Top 1
-            let sortedDucks = [...ducks].sort((a, b) => a.rank - b.rank); // Rank 1 is smallest
+            let sortedDucks = [...ducks].sort((a, b) => b.x - a.x); // Sort by position (Visual Winner)
             let topWinners = sortedDucks.slice(0, 1);
 
             // UI Update
@@ -1333,7 +1354,7 @@
                         <canvas id="${canvasId}" width="300" height="300"></canvas>
                         <div class="w-prize-tag" style="color: #d32f2f; font-size: 1.6rem; margin-bottom: 2px;">${pName}</div>
                         <div class="w-name-tag" style="font-size: 2.2rem; color: #000; line-height: 1.2; margin: 4px 0;">${d.realName || ("Vịt #" + d.id)}</div>
-                        <div class="w-id-tag" style="font-size: 1.6rem; color: #333; font-weight: bold; background: #f0f0f0; padding: 6px 16px; border-radius: 12px; display: inline-block; margin-top: 4px;">ID: ${d.msnv || d.id}</div>
+                        <div class="w-id-tag" style="font-size: 1.6rem; color: #333; font-weight: bold; background: #f0f0f0; padding: 6px 16px; border-radius: 12px; display: inline-block; margin-top: 4px;">ID: ${d.msnv || "---"}</div>
                     </div>
                 `;
 

@@ -429,7 +429,7 @@
             margin: 15px 0;
             padding: 25px 40px;
             border-radius: 80px;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(113, 0, 209, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(8px);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
@@ -469,7 +469,8 @@
         /* Màu bóng */
         /* Màu bóng - Uniform Red */
         .number-ball {
-            background: radial-gradient(circle at 30% 30%, #ff5252, #c62828);
+            background: radial-gradient(circle at 30% 30%, #b265ff, #7100d1);
+            box-shadow: inset -10px -10px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(113, 0, 209, 0.6), 5px 10px 25px rgba(0, 0, 0, 0.6);
         }
 
         /* --- KHU VỰC KẾT QUẢ & QUÀ TẶNG --- */
@@ -501,8 +502,9 @@
         }
 
         #winner-name {
-            font-family: 'Playfair Display', serif;
-            font-style: italic;
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 700;
+            font-style: normal;
             font-size: 4.5rem;
             margin: 10px 0;
             line-height: 1.1;
@@ -570,7 +572,7 @@
         #winner-prize-item {
             font-family: 'Anton', sans-serif;
             font-size: 2rem;
-            color: #7100d1;
+            color: #D32F2F;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: 600;
@@ -1329,7 +1331,19 @@
             // Use Index + 1 as STT if stt property is missing or invalid
             // Or try to parse stt if it exists
             // Process ID for display on balls (Digits only)
-            let rawId = state.currentWinner.id || state.currentWinner.stt || (winnerIndex + 1).toString();
+            // Prioritize: ID -> MSNV -> Code -> STT -> NAME (if numeric) -> Index
+            let w = state.currentWinner;
+            let rawId = w.id || w.msnv || w.code || w.employeeCode || w.stt;
+
+            // If no explicit ID found, check if Name is essentially a number
+            if (!rawId && w.name && /^\d+$/.test(w.name.toString().trim())) {
+                rawId = w.name;
+            }
+
+            // Final fallback to index
+            if (!rawId) {
+                rawId = (winnerIndex + 1).toString();
+            }
 
             // Extract digits only (Remove non-numeric characters)
             let digitsOnly = rawId.toString().replace(/\D/g, '');

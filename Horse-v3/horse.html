@@ -1331,6 +1331,16 @@
         function startGame() {
             if (isRacing) return;
             playSound('whistle');
+
+            // Auto-hide Controls Panel
+            document.querySelector('.controls-panel').style.display = 'none';
+
+            // Resize Canvas for Full Screen
+            width = gameStage.offsetWidth;
+            height = gameStage.offsetHeight;
+            canvas.width = width;
+            canvas.height = height;
+
             COMPOSITE.clear(world); ENGINE.clear(engine);
             ducks = []; logs = []; bananas = []; dusts = [];
             document.getElementById('world-layer').innerHTML = '';
@@ -1410,12 +1420,22 @@
             isRacing = true;
             document.getElementById('winner-screen').style.display = 'none';
             startTime = Date.now();
-            requestAnimationFrame(loop);
+            // requestAnimationFrame(loop); // REMOVED: Loop is already running globally
         }
 
         function resetGame() {
             playSound('fireworks_stop'); // Stop fireworks loop
             isRacing = false; ducks = []; logs = []; bananas = []; dusts = [];
+
+            // Restore Controls Panel
+            document.querySelector('.controls-panel').style.display = '';
+
+            // Resize Canvas back to normal
+            width = gameStage.offsetWidth;
+            height = gameStage.offsetHeight;
+            canvas.width = width;
+            canvas.height = height;
+
             COMPOSITE.clear(world);
             document.getElementById('world-layer').innerHTML = '';
             document.getElementById('timer').innerText = "00:00.0";
@@ -1463,14 +1483,10 @@
             document.getElementById('win-name').innerText = wName;
 
             // 2. ID
-            const wID = winner.participant.id || "";
+            const wID = winner.participant.id || "---";
             const idEl = document.getElementById('win-id');
-            if (wID) {
-                idEl.innerText = "ID: " + wID;
-                idEl.style.display = "block";
-            } else {
-                idEl.style.display = "none";
-            }
+            idEl.innerText = "ID: " + wID;
+            idEl.style.display = "block";
 
             // 3. Prize
             document.getElementById('win-prize').innerText = "GIẢI: " + prizeName;
@@ -1506,7 +1522,7 @@
                     let stratName = STRATEGIES[d.strategy].name;
                     let stratColor = STRATEGIES[d.strategy].color;
                     html += `<div class="r-item">
-                        <span class="${i === 0 ? 'r-1' : ''}">${i + 1}. ${d.participant && d.participant.name ? d.participant.name : d.id}</span>
+                        <span class="${i === 0 ? 'r-1' : ''}">${i + 1}. ${(d.participant && d.participant.id ? d.participant.id : d.id)} - ${d.participant && d.participant.name ? d.participant.name : ""}</span>
                         <span class="strat-tag" style="background:${stratColor}">${stratName}</span>
                     </div>`;
                 }
