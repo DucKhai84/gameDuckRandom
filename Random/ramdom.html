@@ -1333,25 +1333,43 @@
             // Process ID for display on balls (Digits only)
             // Prioritize: ID -> MSNV -> Code -> STT -> NAME (if numeric) -> Index
             let w = state.currentWinner;
-            let rawId = w.id || w.msnv || w.code || w.employeeCode || w.stt;
 
-            // If no explicit ID found, check if Name is essentially a number
-            if (!rawId && w.name && /^\d+$/.test(w.name.toString().trim())) {
-                rawId = w.name;
+            // 1. Try to extract digits from Name first (Priority per user request)
+            // e.g. "YEG227" -> "227"
+            let digitsOnly = "";
+            let sourceIsName = false;
+
+            if (w.name) {
+                const nameDigits = w.name.toString().replace(/\D/g, '');
+                if (nameDigits.length > 0) {
+                    digitsOnly = nameDigits;
+                    sourceIsName = true;
+                }
             }
 
-            // Final fallback to index
-            if (!rawId) {
-                rawId = (winnerIndex + 1).toString();
+            // 2. If no digits in name, try explicit ID fields
+            if (!digitsOnly) {
+                let rawId = w.id || w.msnv || w.code || w.employeeCode || w.stt;
+                if (rawId) {
+                    digitsOnly = rawId.toString().replace(/\D/g, '');
+                }
             }
 
-            // Extract digits only (Remove non-numeric characters)
-            let digitsOnly = rawId.toString().replace(/\D/g, '');
-
-            // Fallback if no digits found
+            // 3. Final fallback to index
             if (!digitsOnly) {
                 digitsOnly = (winnerIndex + 1).toString();
             }
+
+            // Ensure ID is synchronous with the Result
+            if (sourceIsName) {
+                // If we used the Name to get the numbers, strictly use Name as the display ID too
+                // so we don't show "MNV: 166" when balls are "227"
+                state.currentWinner.id = w.name;
+            } else if (!state.currentWinner.id) {
+                state.currentWinner.id = digitsOnly;
+            }
+
+
 
             // Pad or trim to fit BALL_COUNT (4) - Take LAST 4 digits
             let sttStr = digitsOnly;
