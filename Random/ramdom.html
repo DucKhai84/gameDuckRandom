@@ -501,6 +501,17 @@
             margin-bottom: 5px;
         }
 
+        .winner-info-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            /* Center vertically relative to each other */
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
         #winner-name {
             font-family: 'Roboto Condensed', sans-serif;
             font-weight: 700;
@@ -550,32 +561,43 @@
             border: 2px solid #7100d1;
             color: #7100d1;
             border-radius: 16px;
-            padding: 15px 35px;
+            padding: 20px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 25px;
+            gap: 15px;
             justify-content: center;
             box-shadow: 0 6px 20px rgba(113, 0, 209, 0.3);
             transform: translateY(-2px);
             margin-top: 15px;
-            min-width: 500px;
+            min-width: 700px;
+            min-height: 500px;
         }
 
         .prize-img-preview {
-            width: 70px;
-            height: 70px;
+            max-width: 100%;
+            height: auto;
+            max-height: 350px;
             object-fit: contain;
-            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
-            display: none !important;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(113, 0, 209, 0.5);
+            /* Purple shadow */
+            margin-bottom: 20px;
         }
 
         #winner-prize-item {
-            font-family: 'Anton', sans-serif;
-            font-size: 2rem;
-            color: #D32F2F;
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: 2.2rem;
+            color: #ffffff;
             text-transform: uppercase;
             letter-spacing: 2px;
-            font-weight: 600;
+            font-weight: 700;
+            background: linear-gradient(135deg, #7100d1, #b265ff);
+            padding: 15px 40px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(113, 0, 209, 0.4);
+            border: 2px solid #fff;
+            text-align: center;
         }
 
         /* --- NÚT BẤM HIỆN ĐẠI --- */
@@ -1045,8 +1067,10 @@
             <!-- KHU VỰC HIỂN THỊ NGƯỜI THẮNG -->
             <div class="winner-section" id="winnerSection">
                 <div id="winner-prize-category">GIẢI THƯỞNG</div>
-                <h2 id="winner-name" class="winner-placeholder">Người trúng giải: ???</h2>
-                <div id="winner-id" class="winner-placeholder">???</div>
+                <div class="winner-info-row">
+                    <h2 id="winner-name" class="winner-placeholder" style="margin: 0;">Người trúng giải: ???</h2>
+                    <div id="winner-id" class="winner-placeholder" style="margin: 0;">???</div>
+                </div>
 
                 <div class="prize-display-box">
                     <img src="" id="prizePreviewImg" class="prize-img-preview" style="display:none">
@@ -1361,12 +1385,13 @@
             }
 
             // Ensure ID is synchronous with the Result
+            // Ensure ID is synchronous with the Result
             if (sourceIsName) {
-                // If we used the Name to get the numbers, strictly use Name as the display ID too
-                // so we don't show "MNV: 166" when balls are "227"
-                state.currentWinner.id = w.name;
+                // If the digits came from the name, we should prefer the explicit ID for display if we have it
+                state.currentWinner.id = w.id || w.msnv || w.code || w.name;
             } else if (!state.currentWinner.id) {
-                state.currentWinner.id = digitsOnly;
+                // Fallback to digits or name if no ID
+                state.currentWinner.id = w.id || w.msnv || w.code || digitsOnly;
             }
 
 
@@ -1448,8 +1473,12 @@
             localStorage.setItem(CONFIG.STORAGE_KEYS.WINNERS, JSON.stringify(winners));
 
             // 3. Update UI - SHOW ACTUAL WINNER
-            elements.winnerName.textContent = state.currentWinner.name;
-            elements.winnerId.textContent = `MNV: ${state.currentWinner.id}`;
+            // User Request: "text màu vàng cần hiển thị id trong localstorage"
+            // elements.winnerName has class "winner-active" which is the Gold/Yellow text.
+            elements.winnerName.textContent = state.currentWinner.id;
+
+            // The other field (Cyan) shows the Name
+            elements.winnerId.textContent = state.currentWinner.name;
 
             // Switch styles from Placeholder to Active
             elements.winnerName.className = "winner-active";

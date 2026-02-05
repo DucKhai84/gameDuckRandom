@@ -177,11 +177,12 @@
         }
 
         .panel-header {
-            font-family: 'Anton', sans-serif;
+            font-family: 'Roboto Condensed', sans-serif;
             font-size: 2rem;
             text-transform: uppercase;
             background: linear-gradient(135deg, var(--purple-brand) 0%, #9c27b0 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             text-align: center;
             margin-bottom: 10px;
@@ -230,7 +231,7 @@
         }
 
         .prize-name {
-            font-family: 'Anton', sans-serif;
+            font-family: 'Roboto Condensed', sans-serif;
             font-size: 1.6rem;
             color: var(--purple-brand);
             margin-bottom: 5px;
@@ -319,7 +320,7 @@
             padding: 15px;
             border: none;
             border-radius: 10px;
-            font-family: 'Anton', sans-serif;
+            font-family: 'Roboto Condensed', sans-serif;
             font-size: 1.2rem;
             cursor: pointer;
             text-transform: uppercase;
@@ -428,7 +429,7 @@
             color: var(--tet-gold);
             padding: 10px 30px;
             border-radius: 50px;
-            font-family: 'Anton', sans-serif;
+            font-family: 'Roboto Condensed', sans-serif;
             font-size: 1.5rem;
             border: 2px solid var(--tet-gold);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -456,7 +457,7 @@
         .rank-title {
             text-align: center;
             color: var(--tet-gold);
-            font-family: 'Anton', sans-serif;
+            font-family: 'Roboto Condensed', sans-serif;
             margin-bottom: 10px;
             font-size: 1.1rem;
         }
@@ -524,7 +525,7 @@
         }
 
         .winner-title {
-            font-family: 'Anton', sans-serif;
+            font-family: 'Roboto Condensed', sans-serif;
             font-size: 3rem;
             color: var(--tet-red);
             margin: 0;
@@ -597,8 +598,8 @@
         }
 
         .w-name-tag {
-            font-family: 'Anton', sans-serif;
-            font-family: 'Anton', sans-serif;
+            font-family: 'Roboto Condensed', sans-serif;
+            font-family: 'Roboto Condensed', sans-serif;
             font-size: 2.2rem;
             /* Increased from 1.1rem */
             color: #333;
@@ -1348,10 +1349,16 @@
                 // Create Canvas ID
                 let canvasId = `win-canvas-${d.id}`;
 
+                let prizeImgHtml = "";
+                if (hasPrize && currentPrizeIndex !== -1 && prizes[currentPrizeIndex] && prizes[currentPrizeIndex].image) {
+                    prizeImgHtml = `<img src="${prizes[currentPrizeIndex].image}" style="width: 80px; height: 80px; object-fit: contain; margin: 5px auto; display: block;">`;
+                }
+
                 listHtml += `
                     <div class="winner-box ${rankClass}">
                         <div class="w-rank-badge">#${rank}</div>
                         <canvas id="${canvasId}" width="300" height="300"></canvas>
+                        ${prizeImgHtml}
                         <div class="w-prize-tag" style="color: #d32f2f; font-size: 1.6rem; margin-bottom: 2px;">${pName}</div>
                         <div class="w-name-tag" style="font-size: 2.2rem; color: #000; line-height: 1.2; margin: 4px 0;">${d.realName || ("Vịt #" + d.id)}</div>
                         <div class="w-id-tag" style="font-size: 1.6rem; color: #333; font-weight: bold; background: #f0f0f0; padding: 6px 16px; border-radius: 12px; display: inline-block; margin-top: 4px;">ID: ${d.msnv || "---"}</div>
