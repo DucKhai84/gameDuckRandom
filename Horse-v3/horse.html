@@ -1503,11 +1503,12 @@
             const wName = winner.participant.name || ("Ngựa " + winner.id);
             document.getElementById('win-name').innerText = wName;
 
-            // 2. ID
+            // 2. ID (Hidden per request)
             const wID = winner.participant.id || "---";
-            const idEl = document.getElementById('win-id');
-            idEl.innerText = wID;
-            idEl.style.display = "block";
+            // const idEl = document.getElementById('win-id');
+            // idEl.innerText = wID;
+            // idEl.style.display = "block";
+            document.getElementById('win-id').style.display = 'none';
 
             // 3. Prize
             document.getElementById('win-prize').innerText = "" + prizeName;
