@@ -1051,7 +1051,7 @@
                     }
 
                     let variance = 0.95 + Math.random() * 0.1;
-                    if (d.strategy === 'WILD') variance = 0.8 + Math.random() * 0.4;
+                    if (d.strategy === 'WILD') variance = 1.2 + Math.random() * 0.4;
 
                     if (d.status === 'NORMAL') {
                         for (let b of bananas) {
@@ -1067,7 +1067,7 @@
 
                     if (d.status === 'NORMAL') {
                         let targetSpeed = d.baseSpeed * strategyMult * variance;
-                        if (isRainMode) targetSpeed *= 0.9;
+                        if (isRainMode) targetSpeed *= 2;
 
                         let currentVx = d.body.velocity.x;
                         let newVx = currentVx + (targetSpeed - currentVx) * 0.05;
