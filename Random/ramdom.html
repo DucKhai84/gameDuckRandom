@@ -1171,6 +1171,20 @@
             if (storedParticipants) {
                 try {
                     state.participants = JSON.parse(storedParticipants);
+
+                    // --- FILTER OUT WINNERS ---
+                    const storedWinners = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.WINNERS) || '[]');
+                    const winnerIds = new Set(storedWinners.map(w => w.id ? String(w.id).trim() : null).filter(x => x));
+
+                    state.participants = state.participants.filter(p => {
+                        let pId = p.id || p.msnv || p.code || p.employeeCode || p.ma_nv || p.stt || null;
+                        pId = pId ? String(pId).trim() : null;
+
+                        if (pId && winnerIds.has(pId)) return false;
+                        return true;
+                    });
+                    // --------------------------
+
                 } catch (e) {
                     console.error("Error parsing participants", e);
                     state.participants = [];

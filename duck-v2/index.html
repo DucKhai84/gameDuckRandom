@@ -1437,29 +1437,8 @@
         }
 
         function resetGame() {
-            playSound('fireworks_stop'); // Stop fireworks loop
-            isRacing = false;
-            ducks = [];
-
-            // Restore Control Panel
-            document.querySelector('.controls-panel').style.display = '';
-
-            // Update dimensions back to normal
-            width = gameStage.offsetWidth;
-            height = gameStage.offsetHeight;
-            canvas.width = width;
-            canvas.height = height;
-            envCached = false;
-
-            document.getElementById('timer').innerText = "00:00.0";
-            document.getElementById('winner-screen').style.display = 'none';
-            document.getElementById('top-5-container').innerHTML = ''; // Clear winner list
-
-            // Redraw empty river
-            backgroundOffset = 0;
-            cameraX = 0;
-            ctx.clearRect(0, 0, width, height);
-            drawEnvironment(0);
+            // Force reload to refresh participant list and clear state completely
+            location.reload();
         }
 
         function finishGame() {

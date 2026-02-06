@@ -1893,7 +1893,21 @@
 
             if (storedParticipants) {
                 try {
-                    const parsedParticipants = JSON.parse(storedParticipants);
+                    let parsedParticipants = JSON.parse(storedParticipants);
+
+                    // --- FILTER OUT WINNERS ---
+                    const storedWinners = JSON.parse(localStorage.getItem('lucky_draw_winners') || '[]');
+                    const winnerIds = new Set(storedWinners.map(w => w.id ? String(w.id).trim() : null).filter(x => x));
+
+                    parsedParticipants = parsedParticipants.filter(p => {
+                        let pId = p.id || p.msnv || p.code || p.employeeCode || p.ma_nv || null;
+                        pId = pId ? String(pId).trim() : null;
+
+                        if (pId && winnerIds.has(pId)) return false;
+                        return true;
+                    });
+                    // --------------------------
+
                     if (Array.isArray(parsedParticipants) && parsedParticipants.length > 0) {
                         // Format: Tên - Mã NV (nếu có)
                         const formattedList = parsedParticipants.map(p => {
