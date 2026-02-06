@@ -9,7 +9,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;900&family=Roboto+Condensed:wght@700&display=swap"
         rel="stylesheet">
-    <link rel="icon" href="../images (1).png" type="image/x-icon">
+    <link rel="icon" href="../images.png" type="image/x-icon">
 
 
     <style>
@@ -831,6 +831,10 @@
             }
         }
 
+        // STATIC IMAGE FOR WINNER POPUP - GLOBAL DEFINITION
+        // const horseImgStatic = new Image();
+        // horseImgStatic.src = 'horse.gif';
+
         // --- PHYSICS & GAME SETUP ---
         const ENGINE = Matter.Engine, BODIES = Matter.Bodies, COMPOSITE = Matter.Composite, BODY = Matter.Body;
         const canvas = document.getElementById('gameCanvas');
@@ -866,8 +870,9 @@
         };
 
         // STATIC IMAGE FOR WINNER POPUP
-        const horseImgStatic = new Image();
-        horseImgStatic.src = 'horse.gif'; // Use the main gif
+        // STATIC IMAGE FOR WINNER POPUP (Already declared above)
+        // const horseImgStatic = new Image();
+        // horseImgStatic.src = 'horse.gif';
 
         let isRacing = false;
         let isRainMode = false;
@@ -902,11 +907,16 @@
         });
 
         function loadCurrentPrize() {
-            const storedPrizes = localStorage.getItem('lucky_draw_prizes');
-            if (storedPrizes) {
-                prizes = JSON.parse(storedPrizes);
-                currentPrizeIndex = prizes.findIndex(p => p.quantity > 0);
-                updatePrizeUI();
+            try {
+                const storedPrizes = localStorage.getItem('lucky_draw_prizes');
+                if (storedPrizes) {
+                    prizes = JSON.parse(storedPrizes);
+                    currentPrizeIndex = prizes.findIndex(p => p.quantity > 0);
+                    updatePrizeUI();
+                }
+            } catch (e) {
+                console.error("Error loading prizes:", e);
+                prizes = [];
             }
         }
 
@@ -1397,12 +1407,13 @@
                 let x = START_LINE - 40;
                 let y = TOP_MARGIN + 50 + (i * laneHeight);
                 let p = participants[i] || {};
-                let displayId = p.name ? p.name : (p.id ? p.id : (i + 1));
+                // Display ID priority: ID -> Name -> Index
+                let displayId = p.id ? p.id : (p.name ? p.name : (i + 1));
 
                 let body = BODIES.circle(x, y, 20, { frictionAir: 0.05, restitution: 0, collisionFilter: { group: -1 } });
 
                 const img = document.createElement('img');
-                img.src = horseGifSrc;
+                img.src = 'horse.gif';
                 img.className = 'horse-runner';
                 const randomFilter = generateHorseColor();
                 img.style.filter = randomFilter;
@@ -1533,11 +1544,20 @@
                 let currentParticipants = JSON.parse(localStorage.getItem('lucky_draw_participants') || '[]');
                 // Ensure we get a valid ID (Horse V3 stores p.id in winner.participant.id usually)
                 let wID = String(winner.participant.id || winner.id).trim();
+                let wName = String(winner.participant.name || winner.name || "").trim();
 
                 let initialCount = currentParticipants.length;
                 currentParticipants = currentParticipants.filter(p => {
                     let pId = String(p.id || p.msnv || p.code || p.employeeCode || p.name || "").trim();
-                    return pId !== wID;
+                    let pName = String(p.name || "").trim();
+
+                    // 1. Match by ID
+                    if (wID && pId && wID === pId) return false;
+
+                    // 2. Fallback to Name
+                    if ((!wID || !pId) && wName && pName === wName) return false;
+
+                    return true;
                 });
 
                 if (currentParticipants.length !== initialCount) {

@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <link rel="icon" href="../images (1).png" type="image/x-icon">
+    <link rel="icon" href="../images.png" type="image/x-icon">
 
 
     <style>
@@ -1722,12 +1722,22 @@
                     let initialCount = currentParticipants.length;
                     currentParticipants = currentParticipants.filter(p => {
                         let pId = String(p.id || p.msnv || p.code || p.employeeCode || "").trim();
-                        return pId !== wID;
+                        let pNameObj = String(p.name || "").trim();
+                        let wNameStr = String(wName || "").trim();
+
+                        // 1. Match by ID if both exist
+                        if (wID && pId && wID === pId) return false;
+
+                        // 2. Fallback: Match by Name if ID matches failed or missing
+                        // Only remove if Name matches and (ID is missing in one of them)
+                        if ((!wID || !pId) && wNameStr && pNameObj === wNameStr) return false;
+
+                        return true;
                     });
 
                     if (currentParticipants.length !== initialCount) {
                         localStorage.setItem('lucky_draw_participants', JSON.stringify(currentParticipants));
-                        console.log("Removed winner from list:", wID);
+                        console.log("Removed winner from list:", wID, wName);
 
                         // Update local names array immediately
                         names = currentParticipants.map(p => {

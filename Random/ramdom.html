@@ -8,7 +8,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;700&family=Playfair+Display:ital,wght@1,700&family=Anton&display=swap"
         rel="stylesheet">
-    <link rel="icon" href="../images (1).png" type="image/x-icon">
+    <link rel="icon" href="../images.png" type="image/x-icon">
 
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1491,11 +1491,23 @@
             // --- REMOVE WINNER FROM PARTICIPANTS LIST ---
             try {
                 let currentParticipants = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.PARTICIPANTS) || '[]');
-                let wID = String(state.currentWinner.id).trim();
+                // IMPORTANT: state.currentWinner might have been mutated in startSpin.
+                // We trust 'id' if it exists, or 'name'.
+
+                let wID = String(state.currentWinner.id || state.currentWinner.msnv || state.currentWinner.code || "").trim();
+                let wName = String(state.currentWinner.name || "").trim();
 
                 currentParticipants = currentParticipants.filter(p => {
                     let pId = String(p.id || p.msnv || p.code || p.employeeCode || "").trim();
-                    return pId !== wID;
+                    let pName = String(p.name || "").trim();
+
+                    // 1. Match by ID if possible
+                    if (wID && pId && wID === pId) return false;
+
+                    // 2. Fallback to Name
+                    if ((!wID || !pId) && wName && pName === wName) return false;
+
+                    return true;
                 });
 
                 localStorage.setItem(CONFIG.STORAGE_KEYS.PARTICIPANTS, JSON.stringify(currentParticipants));

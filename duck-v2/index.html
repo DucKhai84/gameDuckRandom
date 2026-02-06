@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Anton&display=swap"
         rel="stylesheet">
-    <link rel="icon" href="../images (1).png" type="image/x-icon">
+    <link rel="icon" href="../images.png" type="image/x-icon">
 
 
     <style>
@@ -1529,12 +1529,25 @@
                 let initialCount = currentParticipants.length;
 
                 // Get IDs of winners (usually only 1)
+                let len = topWinners.length;
                 let winnerIds = topWinners.map(d => String(d.msnv || d.id).trim());
+                let winnerNames = topWinners.map(d => String(d.realName || d.name || "").trim());
 
                 // Filter
                 currentParticipants = currentParticipants.filter(p => {
                     let pId = String(p.id || p.msnv || p.code || p.employeeCode || "").trim();
-                    return !winnerIds.includes(pId);
+                    let pName = String(p.name || "").trim();
+
+                    // Check against any of the winners
+                    let match = false;
+                    for (let i = 0; i < len; i++) {
+                        let wID = winnerIds[i];
+                        let wName = winnerNames[i];
+
+                        if (wID && pId && wID === pId) { match = true; break; }
+                        if ((!wID || !pId) && wName && pName === wName) { match = true; break; }
+                    }
+                    return !match;
                 });
 
                 if (currentParticipants.length !== initialCount) {
