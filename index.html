@@ -631,9 +631,20 @@
                         if (row.length === 0) continue;
 
                         // Check if header row (skip)
-                        const firstCell = clean(row[0]).toLowerCase();
-                        if (i === 0 && (firstCell.includes('stt') || firstCell.includes('tên') || firstCell.includes('name') || firstCell.includes('mã') || firstCell.includes('giải'))) {
-                            continue;
+                        // Check if header row (skip)
+                        // Only skip if row 0 AND it contains clear header keywords.
+                        const r0 = clean(row[0]).toLowerCase();
+                        const r1 = clean(row[1]).toLowerCase();
+                        const r2 = clean(row[2]).toLowerCase();
+
+                        if (i === 0) {
+                            let isHeader = false;
+                            if (r0 === 'stt' || r0 === 'tt') isHeader = true;
+                            if (r0.includes('tên') && r1.includes('mã')) isHeader = true;
+                            if (r0.includes('mã') && r1.includes('tên')) isHeader = true;
+                            if (r0 === 'name' || r0 === 'id') isHeader = true;
+
+                            if (isHeader) continue;
                         }
 
                         // EMP Logic
@@ -641,10 +652,8 @@
                             // Expected: STT | Name | ID  OR  Name | ID
                             let stt, name, id;
 
-                            // Remove empty cells from end of row
-                            while (row.length > 0 && (row[row.length - 1] === undefined || row[row.length - 1] === null || String(row[row.length - 1]).trim() === '')) {
-                                row.pop();
-                            }
+                            // Remove empty cells logic REMOVED - it was causing issues with empty columns being dropped before we could check them
+                            // while (row.length > 0 && ...) { row.pop(); }
 
                             if (row.length >= 3) {
                                 stt = clean(row[0]);
@@ -657,17 +666,19 @@
                                 name = clean(row[1]);
                             } else if (row.length === 1) {
                                 stt = newData.length + 1;
-                                id = clean(row[0]); // Assume ID if only 1 col? Or Name?
-                                // If reversed, maybe Name is safest fallback, or ID.
-                                // Let's keep it as is or logical swap?
-                                // If 1 col, usually it's Name list.
-                                // But if user is ID-centric...
-                                // Let's stick to:
-                                name = clean(row[0]);
-                                id = '';
+                                // If only 1 column, assume it is NAME (or ID depending on user preference, but Name is safer for generic lists)
+                                // Let's try to detect if it looks like an ID (number) or Name
+                                let val = clean(row[0]);
+                                if (/^\d+$/.test(val)) {
+                                    id = val;
+                                    name = "Nhân viên " + val;
+                                } else {
+                                    name = val;
+                                    id = "";
+                                }
                             }
 
-                            if (name) {
+                            if (name || id) {
                                 newData.push({ stt, name, id });
                             }
 

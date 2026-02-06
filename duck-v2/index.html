@@ -1389,14 +1389,27 @@
                         const j = Math.floor(Math.random() * (i + 1));
                         [participants[i], participants[j]] = [participants[j], participants[i]];
                     }
+
+                    // --- ADJUST QUANTITY TO MATCH AVAILABLE PARTICIPANTS ---
+                    if (participants.length > 0) {
+                        if (participants.length < qty) {
+                            console.log(`Requested ${qty} ducks but only ${participants.length} eligible participants found. Adjusting qty.`);
+                            qty = participants.length;
+                        }
+                    } else {
+                        console.warn("No eligible participants found! Using placeholders.");
+                    }
+                    // -----------------------------------------------------
+
                 } catch (e) { console.error(e); }
             }
 
             for (let i = 0; i < qty; i++) {
                 let p = participants[i] || {};
                 // Robust data mapping
-                let pName = p.name || p.fullName || p.hoTen || p.ho_ten || null;
-                let pId = p.id || p.msnv || p.code || p.employeeCode || p.ma_nv || null;
+                let pName = p.name || p.fullName || p.hoTen || p.ho_ten || `Vịt #${i + 1}`;
+                // Fallback for ID: if missing, use i+1 but clearer
+                let pId = p.id || p.msnv || p.code || p.employeeCode || p.ma_nv || `D${i + 1}`;
 
                 ducks.push({
                     id: i + 1,
