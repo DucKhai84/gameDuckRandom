@@ -1041,7 +1041,7 @@
                     let dX = d.body.position.x;
                     let dY = d.body.position.y;
 
-                    let strategyMult = 1.0;
+                    let strategyMult = 1.2;
                     if (progress < 0.3) strategyMult = d.strategyData.boostStart;
                     else if (progress > 0.8) strategyMult = d.strategyData.boostEnd;
 
@@ -1050,8 +1050,8 @@
                         strategyMult *= 1.3; // Speed up by 30% near finish
                     }
 
-                    let variance = 0.95 + Math.random() * 0.1;
-                    if (d.strategy === 'WILD') variance = 1.2 + Math.random() * 0.4;
+                    let variance = 1.5 + Math.random() * 0.1;
+                    if (d.strategy === 'WILD') variance = 0.8 + Math.random() * 0.4;
 
                     if (d.status === 'NORMAL') {
                         for (let b of bananas) {
@@ -1067,7 +1067,7 @@
 
                     if (d.status === 'NORMAL') {
                         let targetSpeed = d.baseSpeed * strategyMult * variance;
-                        if (isRainMode) targetSpeed *= 2;
+                        if (isRainMode) targetSpeed *= 1.5;
 
                         let currentVx = d.body.velocity.x;
                         let newVx = currentVx + (targetSpeed - currentVx) * 0.05;
