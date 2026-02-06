@@ -9,6 +9,9 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;900&family=Roboto+Condensed:wght@700&display=swap"
         rel="stylesheet">
+    <link rel="icon" href="../images (1).png" type="image/x-icon">
+
+
     <style>
         /* --- 1. GLOBAL & LAYOUT (From V2) --- */
         :root {
@@ -862,6 +865,10 @@
             'WILD': { name: 'Điên Cuồng', color: '#9c27b0', boostStart: 1.1, boostEnd: 1.1 }
         };
 
+        // STATIC IMAGE FOR WINNER POPUP
+        const horseImgStatic = new Image();
+        horseImgStatic.src = 'horse.gif'; // Use the main gif
+
         let isRacing = false;
         let isRainMode = false;
         let startTime = 0;
@@ -879,10 +886,14 @@
             const storedParticipants = localStorage.getItem('lucky_draw_participants');
             if (storedParticipants) {
                 try {
-                    const parts = JSON.parse(storedParticipants);
+                    let parts = JSON.parse(storedParticipants);
+                    if (!Array.isArray(parts)) {
+                        console.warn("Stored participants is not an array, resetting.");
+                        parts = [];
+                    }
                     const qtyInput = document.getElementById('inp-qty');
-                    if (qtyInput && parts.length > 0) {
-                        qtyInput.value = parts.length;
+                    if (qtyInput) {
+                        qtyInput.value = parts.length > 0 ? parts.length : 10; // Default to 10 if 0
                     }
                 } catch (e) {
                     console.error("Error loading participants for count:", e);
@@ -1371,6 +1382,7 @@
             if (storedParticipants) {
                 try {
                     participants = JSON.parse(storedParticipants);
+                    if (!Array.isArray(participants)) participants = [];
                     // Shuffle
                     for (let i = participants.length - 1; i > 0; i--) {
                         const j = Math.floor(Math.random() * (i + 1));

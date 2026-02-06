@@ -7,6 +7,7 @@
     <title>Bảng Vàng Vinh Danh</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="../images (1).png" type="image/x-icon">
 
     <style>
         /* --- CẤU HÌNH CHUNG --- */
@@ -678,8 +679,8 @@
                             <thead>
                                 <tr>
                                     <th class="col-avatar">#</th>
-                                    <th class="col-id">Mã NV</th>
                                     <th class="col-name">Họ và Tên</th>
+                                    <th class="col-id">Mã NV</th>
                                     <th class="col-prize">Giải Thưởng</th>
                                     <th class="col-time">Thời Gian</th>
                                 </tr>
@@ -712,10 +713,10 @@
                             <img src="${avatarUrl}" class="avatar-img" alt="Avt">
                         </td>
                         <td>
-                            <div class="winner-id">${finalId || '---'}</div>
+                            <div class="winner-name">${finalName}</div>
                         </td>
                         <td>
-                            <div class="winner-name">${finalName}</div>
+                            <div class="winner-id">${finalId || '---'}</div>
                         </td>
                         <td>
                             <div class="prize-name">${w.prize || 'Giải Thưởng'}</div>
@@ -748,7 +749,7 @@
 
             // CSV Header
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "STT,Mã NV,Họ và Tên,Giải Thưởng,Quà Tặng,Game,Thời Gian\n";
+            csvContent += "STT,Họ và Tên,Mã NV,Giải Thưởng,Quà Tặng,Game,Thời Gian\n";
 
             // CSV Rows
             winners.forEach((w, index) => {
@@ -770,8 +771,8 @@
                 const date = new Date(w.timestamp).toLocaleString('vi-VN');
                 const row = [
                     index + 1,
-                    `"${finalId}"`,
                     `"${finalName}"`,
+                    `"${finalId}"`,
                     `"${w.prize}"`,
                     `"${w.prizeItem}"`,
                     `"${w.gameType}"`,
