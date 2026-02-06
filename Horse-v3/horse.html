@@ -1515,6 +1515,24 @@
             let winners = JSON.parse(localStorage.getItem('lucky_draw_winners') || '[]');
             winners.push(winnerData);
             localStorage.setItem('lucky_draw_winners', JSON.stringify(winners));
+
+            // --- REMOVE WINNER FROM PARTICIPANTS LIST ---
+            try {
+                let currentParticipants = JSON.parse(localStorage.getItem('lucky_draw_participants') || '[]');
+                // Ensure we get a valid ID (Horse V3 stores p.id in winner.participant.id usually)
+                let wID = String(winner.participant.id || winner.id).trim();
+
+                let initialCount = currentParticipants.length;
+                currentParticipants = currentParticipants.filter(p => {
+                    let pId = String(p.id || p.msnv || p.code || p.employeeCode || p.name || "").trim();
+                    return pId !== wID;
+                });
+
+                if (currentParticipants.length !== initialCount) {
+                    localStorage.setItem('lucky_draw_participants', JSON.stringify(currentParticipants));
+                    console.log("Removed winner from list:", wID);
+                }
+            } catch (e) { console.error(e); }
         }
 
         function updateTimerUI() {

@@ -1486,6 +1486,23 @@
             });
             localStorage.setItem(CONFIG.STORAGE_KEYS.WINNERS, JSON.stringify(winners));
 
+            // --- REMOVE WINNER FROM PARTICIPANTS LIST ---
+            try {
+                let currentParticipants = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.PARTICIPANTS) || '[]');
+                let wID = String(state.currentWinner.id).trim();
+
+                currentParticipants = currentParticipants.filter(p => {
+                    let pId = String(p.id || p.msnv || p.code || p.employeeCode || "").trim();
+                    return pId !== wID;
+                });
+
+                localStorage.setItem(CONFIG.STORAGE_KEYS.PARTICIPANTS, JSON.stringify(currentParticipants));
+
+                // Update local state too
+                state.participants = currentParticipants;
+                console.log("Removed winner from list:", wID);
+            } catch (e) { console.error(e); }
+
             // 3. Update UI - SHOW ACTUAL WINNER
             // User Request: "text màu vàng cần hiển thị id trong localstorage"
             // elements.winnerName has class "winner-active" which is the Gold/Yellow text.

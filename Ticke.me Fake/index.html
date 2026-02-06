@@ -1711,6 +1711,31 @@
                 } catch (e) {
                     console.error("Error saving winner:", e);
                 }
+
+                // --- REMOVE WINNER FROM LIST ---
+                try {
+                    let currentParticipants = JSON.parse(localStorage.getItem('lucky_draw_participants') || '[]');
+                    let wID = String(wId).trim(); // wId parsed above as winner ID
+
+                    let initialCount = currentParticipants.length;
+                    currentParticipants = currentParticipants.filter(p => {
+                        let pId = String(p.id || p.msnv || p.code || p.employeeCode || "").trim();
+                        return pId !== wID;
+                    });
+
+                    if (currentParticipants.length !== initialCount) {
+                        localStorage.setItem('lucky_draw_participants', JSON.stringify(currentParticipants));
+                        console.log("Removed winner from list:", wID);
+
+                        // Update local names array immediately
+                        names = currentParticipants.map(p => {
+                            let n = p.name || "";
+                            let id = p.id || p.code || p.msnv || "";
+                            if (id) return `${n} - ${id}`;
+                            return n;
+                        });
+                    }
+                } catch (e) { console.error(e); }
                 // -------------------------
 
                 showWinnerPopup(winnerName, selectedPrize).then(() => {

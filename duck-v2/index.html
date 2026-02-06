@@ -1520,6 +1520,28 @@
 
             localStorage.setItem('lucky_draw_winners', JSON.stringify(winnersHistory));
 
+            // --- REMOVE WINNER FROM PARTICIPANTS LIST ---
+            try {
+                let currentParticipants = JSON.parse(localStorage.getItem('lucky_draw_participants') || '[]');
+                let initialCount = currentParticipants.length;
+
+                // Get IDs of winners (usually only 1)
+                let winnerIds = topWinners.map(d => String(d.msnv || d.id).trim());
+
+                // Filter
+                currentParticipants = currentParticipants.filter(p => {
+                    let pId = String(p.id || p.msnv || p.code || p.employeeCode || "").trim();
+                    return !winnerIds.includes(pId);
+                });
+
+                if (currentParticipants.length !== initialCount) {
+                    localStorage.setItem('lucky_draw_participants', JSON.stringify(currentParticipants));
+                    console.log("Removed winners from list:", winnerIds);
+                }
+            } catch (e) {
+                console.error("Error removing winner from list:", e);
+            }
+
             document.getElementById('top-5-container').innerHTML = listHtml;
 
             // Draw Avatars after HTML injection
