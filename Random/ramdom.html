@@ -562,7 +562,7 @@
             color: #7100d1;
             border-radius: 16px;
             padding: 20px;
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
             gap: 15px;
@@ -1130,6 +1130,8 @@
             giftOverlay: document.getElementById('giftOverlay'),
             giftImage: document.getElementById('giftImageElem'),
 
+            prizeDisplayBox: document.querySelector('.prize-display-box'),
+
             // namesInput and countDisplay removed
 
             // Audio Controls
@@ -1245,6 +1247,11 @@
                 return;
             }
 
+            // Ensure box is hidden when switching prizes (until won)
+            if (elements.prizeDisplayBox) {
+                elements.prizeDisplayBox.style.display = 'none';
+            }
+
             // Update Badge
             if (prize.quantity > 0) {
                 elements.prizeCountBadge.textContent = `Còn lại: ${prize.quantity} suất`;
@@ -1300,6 +1307,10 @@
             elements.winnerName.classList.add('winner-details-hidden');
             elements.winnerId.classList.add('winner-details-hidden');
 
+            if (elements.prizeDisplayBox) {
+                elements.prizeDisplayBox.style.display = 'none';
+            }
+
             // Ensure section is visible
             elements.winnerSection.style.opacity = '1';
             elements.winnerSection.style.visibility = 'visible';
@@ -1345,6 +1356,9 @@
             // Hide previous winner details
             elements.winnerName.classList.add('winner-details-hidden');
             elements.winnerId.classList.add('winner-details-hidden');
+            if (elements.prizeDisplayBox) {
+                elements.prizeDisplayBox.style.display = 'none';
+            }
 
             elements.winnerId.textContent = "";
 
@@ -1487,9 +1501,12 @@
             // Show Winner Details
             elements.winnerName.classList.remove('winner-details-hidden');
             elements.winnerId.classList.remove('winner-details-hidden');
-
             renderDropdown(); // Update dropdown text (quantity)
             renderUI();       // Update badge
+
+            if (elements.prizeDisplayBox) {
+                elements.prizeDisplayBox.style.display = 'flex';
+            }
 
             launchConfetti();
 

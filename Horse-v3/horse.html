@@ -544,15 +544,15 @@
 
         .win-box {
             background: rgba(20, 20, 20, 0.95);
-            padding: 60px;
-            border-radius: 40px;
+            padding: 20px;
+            border-radius: 30px;
             text-align: center;
             border: 4px solid #ffca28;
             animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
             box-shadow: 0 0 80px rgba(255, 202, 40, 0.5);
             backdrop-filter: blur(15px);
             min-width: 600px;
@@ -577,7 +577,7 @@
         }
 
         .win-name {
-            font-size: 64px;
+            font-size: 48px;
             color: #FFD700;
             margin: 0;
             font-weight: 900;
@@ -585,8 +585,8 @@
         }
 
         .crown {
-            font-size: 60px;
-            margin-bottom: -20px;
+            font-size: 50px;
+            margin: 0;
             animation: float 2s infinite ease-in-out;
         }
 
@@ -704,7 +704,7 @@
                 <div class="win-box">
                     <div class="crown">👑</div>
                     <h2 class="win-title">NHÀ VÔ ĐỊCH</h2>
-                    <canvas id="win-canvas" width="400" height="300"></canvas>
+                    <canvas id="win-canvas" width="400" height="300" style="display:none"></canvas>
                     <h1 id="win-name" class="win-name">#1</h1>
                     <div id="win-id" class="win-subtitle"
                         style="color:#fff; font-size:1.8rem; margin-top:10px; background: rgba(255,255,255,0.15); padding: 5px 20px; border-radius: 30px; display: inline-block;">
@@ -713,7 +713,7 @@
                     <div id="win-prize" class="win-subtitle"
                         style="color:#FFD700; font-size:1.5rem; font-weight:bold; margin-top:10px;">GIẢI: ---</div>
                     <img id="win-prize-img" src=""
-                        style="display:none; width: 100px; height: 100px; object-fit: contain; margin-top: 10px;">
+                        style="display:none; width: 250px; height: 250px; object-fit: contain; margin-top: 10px;">
                     <button class="btn-action btn-start" onclick="resetGame()"
                         style="margin-top: 20px; font-size:14px; padding:10px;">ĐUA VÁN MỚI</button>
                 </div>
